@@ -3,7 +3,7 @@ Ollamarama is an AI chatbot for IRC which uses offline LLMs with LiteLLM and Oll
 
 Also available for the Matrix chat protocol at [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/)
 
-OpenAI version available at [infinigpt-irc](https://github.com/h1ddenpr0cess20/infinigpt-irc)
+Based on my earlier project, InfiniGPT, which uses OpenAI, available at [infinigpt-irc](https://github.com/h1ddenpr0cess20/infinigpt-irc)
 
 ## Setup
 Install and familiarize yourself with [Ollama](https://ollama.ai/), make sure you can run offline LLMs, etc.
@@ -16,7 +16,7 @@ curl https://ollama.ai/install.sh | sh
 Once it's all set up, you'll need to download the model.  You can play with the available ones and see what works best for you, but for this bot, zephyr:7b-beta-q8_0 seems to work best of the ones I've tested.  To install:
 ```
 ollama pull zephyr:7b-beta-q8_0
-
+```
 
 You also need to install the irc and litellm modules
 
@@ -29,6 +29,7 @@ Fill in the variables for channel, nickname, password and server in launcher.py.
 Password is optional, but registration is required for some channels.
 
 ## Use
+
 ```
 python3 launcher.py
 ```
