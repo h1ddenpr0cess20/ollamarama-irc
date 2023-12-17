@@ -2,10 +2,10 @@ from ollamarama import ollamarama
 
 # create the bot and connect to the server
 personality = "a helpful and thorough AI assistant who provides accurate and detailed answers without being too verbose"  #you can put anything here.  A character, person, personality type, object, concept, emoji, etc
-channel = "#robots"
-nickname = "ollamarama"
+channel = "#channel"
+nickname = "nickname"
 #password = "PASSWORD"
-server = "irc.rizon.net"
+server = "irc.server.net"
 
 #checks if password variable exists (comment it out if unregistered)
 try:
