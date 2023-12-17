@@ -29,7 +29,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
         #set model, this one works best in my tests with the hardware i have, but you can try others
-        self.model = "ollama/zephyr:7b-beta-q8_0"
+        self.model = "ollama/zephyr:7b-beta-q6_K"
     
         
     def chop(self, message):
