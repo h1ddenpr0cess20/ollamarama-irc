@@ -57,10 +57,13 @@ python3 launcher.py
     Display the help menu
 
 **.models**
-    Show current model and available models
+    Show current model and available models (admin only)
 
 **.model _name_**
-    Set a model
+    Set a model (admin only)
 
 **.model _reset_**
-    Reset to default model
+    Reset to default model (admin only)
+
+**.clear**
+    Resets all bot history and sets default model (admin only)

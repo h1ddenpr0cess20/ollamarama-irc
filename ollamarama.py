@@ -349,8 +349,6 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     ".persona <personality> to change my personality. I can be any personality type, character, inanimate object, place, concept.", 
                     ".custom <prompt> to use a custom system prompt instead of a persona",
                     ".stock to set to stock settings.", f".reset to reset to my default personality, {self.personality}.",
-                    ".models to show current model and list available models", ".model <model name> changes the current model, type reset instead of a model name to return to default model.", 
-                    
 
                 ]
                 for line in help:
