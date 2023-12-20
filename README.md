@@ -67,3 +67,9 @@ python3 launcher.py
 
 **.clear**
     Resets all bot history and sets default model (admin only)
+
+**.auth _user_**
+    Add user to admins (main admin only)
+
+**.deauth _user_**
+    Remove user from admins (main admin only)

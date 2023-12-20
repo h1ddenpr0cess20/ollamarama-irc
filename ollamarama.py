@@ -44,10 +44,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             'vicuna': 'ollama/vicuna:13b-q4_0',
             'phi': 'ollama/phi',
             'orca-mini': 'ollama/orca-mini',
-            'samantha-mistral': 'ollama/samantha-mistral',
             'wizardcoder': 'ollama/wizardcoder:python',
             'stablelm-zephyr': 'ollama/stablelm-zephyr',
-            'neural-chat': 'ollama/neural-chat'
+            'neural-chat': 'ollama/neural-chat',
         }
         #set model
         self.default_model = self.models['solar']
@@ -236,13 +235,15 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
         #if the bot didn't send the message
         if sender != self.nickname:
-            #model switching 
-            if message.startswith(".model"):
-                if message == ".models":
-                    c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
-                    c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
-                if message.startswith(".model "):
-                    if sender in self.admins:
+            #admin commands
+            if sender in self.admins:
+
+                #model switching 
+                if message.startswith(".model"):
+                    if message == ".models":
+                        c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
+                        c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
+                    if message.startswith(".model "):
                         m = message.split(" ", 1)[1]
                         if m != None:
                             if m in self.models:
@@ -250,26 +251,27 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                             elif m == 'reset':
                                 self.model = self.default_model
                             c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
-            #reset history for all users                
-            if message == ".clear":
-                if sender in self.admins:
+                
+                #reset history for all users                
+                if message == ".clear":
                     self.messages.clear()
                     self.model = self.default_model
                     c.privmsg(self.channel, "Bot has been reset for everyone")
-            
-            if message.startswith(".auth "):
-                if sender in self.admins:
-                    nick = message.split(" ", 1)[1]
-                    if nick != None:
-                        self.admins.append(nick)
-                        c.privmsg(self.channel, f"{nick} added to admins")
-            if message.startswith(".deauth "):
-                if sender in self.admins:
-                    nick = message.split(" ", 1)[1]
-                    if nick != None:
-                        self.admins.remove(nick)
-                        c.privmsg(self.channel, f"{nick} removed from admins")
-                                
+                
+                if sender == self.admins[0]:
+                    #add admins
+                    if message.startswith(".auth "):
+                        nick = message.split(" ", 1)[1]
+                        if nick != None:
+                            self.admins.append(nick)
+                            c.privmsg(self.channel, f"{nick} added to admins")
+                    
+                    #remove admins
+                    if message.startswith(".deauth "):
+                        nick = message.split(" ", 1)[1]
+                        if nick != None:
+                            self.admins.remove(nick)
+                            c.privmsg(self.channel, f"{nick} removed from admins")                     
 
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
@@ -281,7 +283,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 thread = threading.Thread(target=self.respond, args=(c, sender, self.messages[sender]))
                 thread.start()
                 thread.join(timeout=30)
-                time.sleep(2) #help prevent mixing user output
+                time.sleep(2) #help prevent mixing user output (does not seem to be working very well for long responses, may need to adjust)
 
             #collborative use
             if message.startswith(".x "):
