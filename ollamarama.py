@@ -28,7 +28,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #prompt parts
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
-        #put the models you want to use here
+        #put the models you want to use here, still testing various models
         self.models = {
             'zephyr': 'ollama/zephyr:7b-beta-q8_0',
             'solar': 'ollama/solar',
@@ -47,6 +47,8 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             'wizardcoder': 'ollama/wizardcoder:python',
             'stablelm-zephyr': 'ollama/stablelm-zephyr',
             'neural-chat': 'ollama/neural-chat',
+            'mistral-openorca': 'ollama/mistral-openorca',
+             
         }
         #set model
         self.default_model = self.models['solar']
