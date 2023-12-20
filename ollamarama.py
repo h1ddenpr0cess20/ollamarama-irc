@@ -13,7 +13,7 @@ import threading
 from litellm import completion
 
 class ollamarama(irc.bot.SingleServerIRCBot):
-    def __init__(self, personality, channel, nickname, server, password=None, port=6667):
+    def __init__(self, personality, channel, nickname, server, admins, password=None, port=6667):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         
         self.personality = personality
@@ -46,12 +46,15 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             'orca-mini': 'ollama/orca-mini',
             'samantha-mistral': 'ollama/samantha-mistral',
             'wizardcoder': 'ollama/wizardcoder:python',
-            'stablelm-zephyr': 'ollama/stablelm-zephyr'
+            'stablelm-zephyr': 'ollama/stablelm-zephyr',
+            'neural-chat': 'ollama/neural-chat'
         }
         #set model
         self.default_model = self.models['solar']
         self.model = self.default_model
-   
+
+        #authorized users for changing models
+        self.admins = admins
         
     def chop(self, message):
         lines = message.splitlines()
@@ -117,9 +120,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                         timeout=60)    
             response_text = response.choices[0].message.content
             
-            #removes any unwanted quotation marks from responses
-            if response_text.startswith('"') and response_text.endswith('"'):
-                response_text = response_text.strip('"')
+            # #removes any unwanted quotation marks from responses
+            # if response_text.startswith('"') and response_text.endswith('"'):
+            #     response_text = response_text.strip('"')
 
             #add the response text to the history before breaking it up
             self.add_history("assistant", sender, response_text)
@@ -233,21 +236,40 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
         #if the bot didn't send the message
         if sender != self.nickname:
-            
-            #model switching (will change it to be used by authorized users only later)
+            #model switching 
             if message.startswith(".model"):
                 if message == ".models":
                     c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
                     c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
                 if message.startswith(".model "):
-                    m = message.split(" ", 1)[1]
-                    if m != None:
-                        if m in self.models:
-                            self.model = self.models[m]
-                        elif m == 'reset':
-                            self.model = self.default_model
-                        c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
-                        
+                    if sender in self.admins:
+                        m = message.split(" ", 1)[1]
+                        if m != None:
+                            if m in self.models:
+                                self.model = self.models[m]
+                            elif m == 'reset':
+                                self.model = self.default_model
+                            c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
+            #reset history for all users                
+            if message == ".clear":
+                if sender in self.admins:
+                    self.messages.clear()
+                    self.model = self.default_model
+                    c.privmsg(self.channel, "Bot has been reset for everyone")
+            
+            if message.startswith(".auth "):
+                if sender in self.admins:
+                    nick = message.split(" ", 1)[1]
+                    if nick != None:
+                        self.admins.append(nick)
+                        c.privmsg(self.channel, f"{nick} added to admins")
+            if message.startswith(".deauth "):
+                if sender in self.admins:
+                    nick = message.split(" ", 1)[1]
+                    if nick != None:
+                        self.admins.remove(nick)
+                        c.privmsg(self.channel, f"{nick} removed from admins")
+                                
 
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
@@ -343,11 +365,14 @@ if __name__ == "__main__":
     #password = "PASSWORD"
     server = "SERVER"
     
+    #list of nicks allowed to change bot settings
+    admins = ['admin_name1', 'admin_name2',]
+
     #checks if password variable exists (comment it out if unregistered)
     try:
-      bot = ollamarama(personality, channel, nickname, server, password)
+      bot = ollamarama(personality, channel, nickname, server, admins, password)
     except:
-      bot = ollamarama(personality, channel, nickname, server)
+      bot = ollamarama(personality, channel, nickname, server, admins)
       
     bot.start()
 
