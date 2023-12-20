@@ -28,9 +28,27 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #prompt parts
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
+        self.models = {
+            'zephyr': 'ollama/zephyr:7b-beta-q8_0',
+            'solar': 'ollama/solar',
+            'mistral': 'ollama/mistral',
+            'llama2': 'ollama/llama2',
+            'llama2-uncensored': 'ollama/llama2-uncensored',
+            'openchat': 'ollama/openchat',
+            'codellama': 'ollama/codellama:13b-instruct-q4_0',
+            'dolphin-mistral': 'ollama/dolphin2.2-mistral:7b-q8_0',
+            'deepseek-coder': 'ollama/deepseek-coder:6.7b',
+            'orca2': 'ollama/orca2',
+            'starling-lm': 'ollama/starling-lm',
+            'vicuna': 'ollama/vicuna:13b-q4_0',
+            'phi': 'ollama/phi',
+            'orca-mini': 'ollama/orca-mini',
+            'samantha-mistral': 'ollama/samantha-mistral'
+        }
         #set model, this one works best in my tests with the hardware i have, but you can try others
-        self.model = "ollama/zephyr:7b-beta-q8_0"
-    
+        self.default_model = self.models['solar']
+        self.model = self.default_model
+   
         
     def chop(self, message):
         lines = message.splitlines()
@@ -210,6 +228,21 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
         #if the bot didn't send the message
         if sender != self.nickname:
+            
+            if message.startswith(".model"):
+                if message == ".models":
+                    c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
+                    c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
+                if message.startswith(".model "):
+                    m = message.split(" ", 1)[1]
+                    if m != None:
+                        if m in self.models:
+                            self.model = self.models[m]
+                        elif m == 'reset':
+                            self.model = self.default_model
+                        c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
+                        
+
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
                 m = message.split(" ", 1)
