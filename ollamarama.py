@@ -28,6 +28,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #prompt parts
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
+        #put the models you want to use here
         self.models = {
             'zephyr': 'ollama/zephyr:7b-beta-q8_0',
             'solar': 'ollama/solar',
@@ -45,7 +46,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             'orca-mini': 'ollama/orca-mini',
             'samantha-mistral': 'ollama/samantha-mistral'
         }
-        #set model, this one works best in my tests with the hardware i have, but you can try others
+        #set model
         self.default_model = self.models['solar']
         self.model = self.default_model
    
@@ -229,6 +230,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #if the bot didn't send the message
         if sender != self.nickname:
             
+            #model switching (will change it to be used by authorized users only later)
             if message.startswith(".model"):
                 if message == ".models":
                     c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
