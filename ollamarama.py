@@ -238,8 +238,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #if the bot didn't send the message
         if sender != self.nickname:
             #admin commands
+            if message == ".admins":
+                c.privmsg(self.channel, f"Bot admins: {', '.join(self.admins)}")
             if sender in self.admins:
-
                 #model switching 
                 if message.startswith(".model"):
                     if message == ".models":
@@ -263,14 +264,14 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 if sender == self.admins[0]:
                     #add admins
                     if message.startswith(".auth "):
-                        nick = message.split(" ", 1)[1]
+                        nick = message.split(" ", 1)[1].strip()
                         if nick != None:
                             self.admins.append(nick)
                             c.privmsg(self.channel, f"{nick} added to admins")
                     
                     #remove admins
                     if message.startswith(".deauth "):
-                        nick = message.split(" ", 1)[1]
+                        nick = message.split(" ", 1)[1].strip()
                         if nick != None:
                             self.admins.remove(nick)
                             c.privmsg(self.channel, f"{nick} removed from admins")                     
