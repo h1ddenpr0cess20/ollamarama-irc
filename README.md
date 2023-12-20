@@ -13,10 +13,8 @@ You can install it with this command:
 curl https://ollama.ai/install.sh | sh
 ```
 
-Once it's all set up, you'll need to download the model.  You can play with the available ones and see what works best for you, but for this bot, zephyr:7b-beta-q8_0 seems to work best of the ones I've tested.  To install:
-```
-ollama pull zephyr:7b-beta-q8_0
-```
+Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the self.models dictionary.
+
 
 You also need to install the irc and litellm modules
 
@@ -57,3 +55,12 @@ python3 launcher.py
 
 **.help _botname_**
     Display the help menu
+
+**.models**
+    Show current model and available models
+
+**.model _name_**
+    Set a model
+
+**.model _reset_**
+    Reset to default model

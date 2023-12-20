@@ -44,7 +44,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             'vicuna': 'ollama/vicuna:13b-q4_0',
             'phi': 'ollama/phi',
             'orca-mini': 'ollama/orca-mini',
-            'samantha-mistral': 'ollama/samantha-mistral'
+            'samantha-mistral': 'ollama/samantha-mistral',
+            'wizardcoder': 'ollama/wizardcoder:python',
+            'stablelm-zephyr': 'ollama/stablelm-zephyr'
         }
         #set model
         self.default_model = self.models['solar']
@@ -197,8 +199,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         # greet = f"come up with a unique greeting for the user {user}"
         # if user != self.nickname:
         #     try:
-        #         response = self.client.chat.completions.create(model=self.model, 
-        #                 messages=[{"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]}, {"role": "user", "content": greet}])
+        #         response = completion(model=self.model, 
+        #                 messages=[
+        #                     {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]}, 
+        #                     {"role": "user", "content": greet}])
         #         response_text = response.choices[0].message.content
         #         time.sleep(5)
         #         lines = self.chop(response_text)
@@ -322,7 +326,8 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     f".ai <message> or {self.nickname}: <message> to talk to me.", ".x <user> <message> to talk to another user's history for collaboration.",
                     ".persona <personality> to change my personality. I can be any personality type, character, inanimate object, place, concept.", 
                     ".custom <prompt> to use a custom system prompt instead of a persona",
-                    ".stock to set to stock settings.", f".reset to reset to my default personality, {self.personality}.",  
+                    ".stock to set to stock settings.", f".reset to reset to my default personality, {self.personality}.",
+                    ".models to show current model and list available models", ".model <model name> changes the current model, type reset instead of a model name to return to default model.", 
                     
 
                 ]
