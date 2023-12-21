@@ -7,10 +7,13 @@ nickname = "nickname"
 #password = "PASSWORD"
 server = "irc.server.net"
 
+#list of nicks allowed to change bot settings
+admins =['USERNAME',]
+
 #checks if password variable exists (comment it out if unregistered)
 try:
-    bot = ollamarama(personality, channel, nickname, server, password)
+    bot = ollamarama(personality, channel, nickname, server, admins, password)
 except:
-    bot = ollamarama(personality, channel, nickname, server)
+    bot = ollamarama(personality, channel, nickname, server, admins)
     
 bot.start()

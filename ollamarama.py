@@ -13,7 +13,7 @@ import threading
 from litellm import completion
 
 class ollamarama(irc.bot.SingleServerIRCBot):
-    def __init__(self, personality, channel, nickname, server, password=None, port=6667):
+    def __init__(self, personality, channel, nickname, server, admins, password=None, port=6667):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         
         self.personality = personality
@@ -28,9 +28,34 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #prompt parts
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
-        #set model, this one works best in my tests with the hardware i have, but you can try others
-        self.model = "ollama/zephyr:7b-beta-q8_0"
-    
+        #put the models you want to use here, still testing various models
+        self.models = {
+            'zephyr': 'ollama/zephyr:7b-beta-q8_0',
+            'solar': 'ollama/solar',
+            'mistral': 'ollama/mistral',
+            'llama2': 'ollama/llama2',
+            'llama2-uncensored': 'ollama/llama2-uncensored',
+            'openchat': 'ollama/openchat',
+            'codellama': 'ollama/codellama:13b-instruct-q4_0',
+            'dolphin-mistral': 'ollama/dolphin2.2-mistral:7b-q8_0',
+            'deepseek-coder': 'ollama/deepseek-coder:6.7b',
+            'orca2': 'ollama/orca2',
+            'starling-lm': 'ollama/starling-lm',
+            'vicuna': 'ollama/vicuna:13b-q4_0',
+            'phi': 'ollama/phi',
+            'orca-mini': 'ollama/orca-mini',
+            'wizardcoder': 'ollama/wizardcoder:python',
+            'stablelm-zephyr': 'ollama/stablelm-zephyr',
+            'neural-chat': 'ollama/neural-chat',
+            'mistral-openorca': 'ollama/mistral-openorca',
+             
+        }
+        #set model
+        self.default_model = self.models['solar']
+        self.model = self.default_model
+
+        #authorized users for changing models
+        self.admins = admins
         
     def chop(self, message):
         lines = message.splitlines()
@@ -96,9 +121,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                         timeout=60)    
             response_text = response.choices[0].message.content
             
-            #removes any unwanted quotation marks from responses
-            if response_text.startswith('"') and response_text.endswith('"'):
-                response_text = response_text.strip('"')
+            # #removes any unwanted quotation marks from responses
+            # if response_text.startswith('"') and response_text.endswith('"'):
+            #     response_text = response_text.strip('"')
 
             #add the response text to the history before breaking it up
             self.add_history("assistant", sender, response_text)
@@ -178,8 +203,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         # greet = f"come up with a unique greeting for the user {user}"
         # if user != self.nickname:
         #     try:
-        #         response = self.client.chat.completions.create(model=self.model, 
-        #                 messages=[{"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]}, {"role": "user", "content": greet}])
+        #         response = completion(model=self.model, 
+        #                 messages=[
+        #                     {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]}, 
+        #                     {"role": "user", "content": greet}])
         #         response_text = response.choices[0].message.content
         #         time.sleep(5)
         #         lines = self.chop(response_text)
@@ -210,6 +237,45 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
         #if the bot didn't send the message
         if sender != self.nickname:
+            #admin commands
+            if message == ".admins":
+                c.privmsg(self.channel, f"Bot admins: {', '.join(self.admins)}")
+            if sender in self.admins:
+                #model switching 
+                if message.startswith(".model"):
+                    if message == ".models":
+                        c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
+                        c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
+                    if message.startswith(".model "):
+                        m = message.split(" ", 1)[1]
+                        if m != None:
+                            if m in self.models:
+                                self.model = self.models[m]
+                            elif m == 'reset':
+                                self.model = self.default_model
+                            c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
+                
+                #reset history for all users                
+                if message == ".clear":
+                    self.messages.clear()
+                    self.model = self.default_model
+                    c.privmsg(self.channel, "Bot has been reset for everyone")
+                
+                if sender == self.admins[0]:
+                    #add admins
+                    if message.startswith(".auth "):
+                        nick = message.split(" ", 1)[1].strip()
+                        if nick != None:
+                            self.admins.append(nick)
+                            c.privmsg(self.channel, f"{nick} added to admins")
+                    
+                    #remove admins
+                    if message.startswith(".deauth "):
+                        nick = message.split(" ", 1)[1].strip()
+                        if nick != None:
+                            self.admins.remove(nick)
+                            c.privmsg(self.channel, f"{nick} removed from admins")                     
+
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
                 m = message.split(" ", 1)
@@ -220,7 +286,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 thread = threading.Thread(target=self.respond, args=(c, sender, self.messages[sender]))
                 thread.start()
                 thread.join(timeout=30)
-                time.sleep(2) #help prevent mixing user output
+                time.sleep(2) #help prevent mixing user output (does not seem to be working very well for long responses, may need to adjust)
 
             #collborative use
             if message.startswith(".x "):
@@ -287,8 +353,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     f".ai <message> or {self.nickname}: <message> to talk to me.", ".x <user> <message> to talk to another user's history for collaboration.",
                     ".persona <personality> to change my personality. I can be any personality type, character, inanimate object, place, concept.", 
                     ".custom <prompt> to use a custom system prompt instead of a persona",
-                    ".stock to set to stock settings.", f".reset to reset to my default personality, {self.personality}.",  
-                    
+                    ".stock to set to stock settings.", f".reset to reset to my default personality, {self.personality}.",
 
                 ]
                 for line in help:
@@ -303,11 +368,14 @@ if __name__ == "__main__":
     #password = "PASSWORD"
     server = "SERVER"
     
+    #list of nicks allowed to change bot settings
+    admins = ['admin_name1', 'admin_name2',]
+
     #checks if password variable exists (comment it out if unregistered)
     try:
-      bot = ollamarama(personality, channel, nickname, server, password)
+      bot = ollamarama(personality, channel, nickname, server, admins, password)
     except:
-      bot = ollamarama(personality, channel, nickname, server)
+      bot = ollamarama(personality, channel, nickname, server, admins)
       
     bot.start()
 
