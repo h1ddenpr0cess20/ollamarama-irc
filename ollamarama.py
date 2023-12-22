@@ -48,6 +48,8 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             'stablelm-zephyr': 'ollama/stablelm-zephyr',
             'neural-chat': 'ollama/neural-chat',
             'mistral-openorca': 'ollama/mistral-openorca',
+            'deepseek-llm': 'ollama/deepseek-llm:7b-chat',
+            'wizard-vicuna-uncensored': 'ollama/wizard-vicuna-uncensored'
              
         }
         #set model
