@@ -1,7 +1,7 @@
 # ollamarama-irc
 Ollamarama is an AI chatbot for IRC which uses offline LLMs with LiteLLM and Ollama.  It can roleplay as almost anything you can think of.  You can set any default personality you would like.  It can be changed at any time, and each user has their own separate chat history with their chosen personality setting.  Users can interact with each others chat histories for collaboration if they would like, but otherwise, conversations are separated.
 
-Also available for the Matrix chat protocol at [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/)
+Also available for the Matrix chat protocol at [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/).  Terminal-based version at [ollamarama](https://github.com/h1ddenpr0cess20/ollamarama)
 
 Based on my earlier project, InfiniGPT, which uses OpenAI, available at [infinigpt-irc](https://github.com/h1ddenpr0cess20/infinigpt-irc)
 
@@ -21,7 +21,6 @@ You also need to install the irc and litellm modules
 ```
 pip3 install litellm irc
 ```
-Get an [OpenAI API](https://platform.openai.com/signup) key 
 
 Fill in the variables for channel, nickname, password and server in launcher.py.  
 Password is optional, but registration is required for some channels.
@@ -65,11 +64,26 @@ python3 launcher.py
 **.model _reset_**
     Reset to default model (admin only)
 
+**.temperature** 
+    Set temperature value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)
+                                                
+**.top_p**
+    Set top_p value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)
+                                                
+**.repeat_penalty**
+    Set repeat_penalty between 0 and 2.  To reset to default, type reset instead of a number. (bot owner only)
+                                                
 **.clear**
-    Resets all bot history and sets default model (admin only)
+    Resets all bot history and sets default model and settings. (bot owner only)
 
 **.auth _user_**
-    Add user to admins (main admin only)
+    Add user to admins (bot owner only)
 
 **.deauth _user_**
-    Remove user from admins (main admin only)
+    Remove user from admins (bot owner only)
+
+**.gpersona _persona_**
+    Change global personality (bot owner only)
+
+**.gpersona reset**
+    Reset global personality (bot owner only)

@@ -17,6 +17,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         
         self.personality = personality
+        self.default_personality = personality
         self.channel = channel
         self.server = server
         self.nickname = nickname
@@ -48,11 +49,17 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             'stablelm-zephyr': 'ollama/stablelm-zephyr',
             'neural-chat': 'ollama/neural-chat',
             'mistral-openorca': 'ollama/mistral-openorca',
+            'deepseek-llm': 'ollama/deepseek-llm:7b-chat',
+            'wizard-vicuna-uncensored': 'ollama/wizard-vicuna-uncensored'
              
         }
         #set model
-        self.default_model = self.models['solar']
+        self.default_model = self.models['zephyr']
         self.model = self.default_model
+
+        self.temperature = .9
+        self.top_p = .7
+        self.repeat_penalty = 1.5
 
         #authorized users for changing models
         self.admins = admins
@@ -114,9 +121,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             response = completion(
                         api_base="http://localhost:11434",
                         model=self.model,
-                        temperature=.9,
-                        top_p=.7,
-                        repeat_penalty=1.5,
+                        temperature=self.temperature,
+                        top_p=self.top_p,
+                        repeat_penalty=self.repeat_penalty,
                         messages=message,
                         timeout=60)    
             response_text = response.choices[0].message.content
@@ -148,7 +155,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             print(x)
 
         #trim history for token size management
-        if len(self.messages[sender]) > 30:
+        if len(self.messages[sender]) > 24:
             del self.messages[sender][1:3]
 
     #when bot joins network, identify and wait, then join channel   
@@ -171,9 +178,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             response = completion(
                             api_base="http://localhost:11434",
                             model=self.model,
-                            temperature=.9,
-                            top_p=.7,
-                            repeat_penalty=1.5,
+                            temperature=self.temperature,
+                            top_p=self.top_p,
+                            repeat_penalty=self.repeat_penalty,
                             messages=
                             [
                                 {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]},
@@ -255,13 +262,18 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                                 self.model = self.default_model
                             c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
                 
-                #reset history for all users                
-                if message == ".clear":
-                    self.messages.clear()
-                    self.model = self.default_model
-                    c.privmsg(self.channel, "Bot has been reset for everyone")
+                
                 
                 if sender == self.admins[0]:
+                    #reset history for all users                
+                    if message == ".clear":
+                        self.messages.clear()
+                        self.model = self.default_model
+                        self.temperature = .9
+                        self.top_p = .7
+                        self.repeat_penalty = 1.5
+                        c.privmsg(self.channel, "Bot has been reset for everyone")
+                        
                     #add admins
                     if message.startswith(".auth "):
                         nick = message.split(" ", 1)[1].strip()
@@ -274,7 +286,66 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                         nick = message.split(" ", 1)[1].strip()
                         if nick != None:
                             self.admins.remove(nick)
-                            c.privmsg(self.channel, f"{nick} removed from admins")                     
+                            c.privmsg(self.channel, f"{nick} removed from admins")
+
+                    #set new global personality
+                    if message.startswith(".gpersona "):
+                        m = message.split(" ", 1)[1].strip()
+                        if m != None:
+                            if m == 'reset':
+                                self.personality = self.default_personality
+                            else:
+                                self.personality = m
+                            c.privmsg(self.channel, f"Global personality set to {self.personality}")
+
+                    #temperature setting
+                    if message.startswith(".temperature "):
+                        if message == ".temperature reset":
+                            self.temperature = .9
+                            c.privmsg(self.channel, f"Temperature set to {self.temperature}")
+                        else:
+                            try:
+                                temp = float(message.split(" ", 1)[1])
+                                if 0 <= temp <=1:
+                                    self.temperature = temp
+                                    c.privmsg(self.channel, f"Temperature set to {self.temperature}")
+                                else:
+                                    c.privmsg(self.channel, f"Invalid input, temperature is still {self.temperature}")
+                            except:
+                                c.privmsg(self.channel, f"Invalid input, temperature is still {self.temperature}")
+
+                    #top_p setting
+                    if message.startswith(".top_p "):
+                        if message == ".top_p reset":
+                            self.top_p = .7
+                            c.privmsg(self.channel, f"Top_p set to {self.top_p}")
+                        else:
+                            try:
+                                top_p = float(message.split(" ", 1)[1])
+                                if 0 <= top_p <=1:
+                                    self.top_p = top_p
+                                    c.privmsg(self.channel, f"Top_p set to {self.top_p}")
+                                else:
+                                    c.privmsg(self.channel, f"Invalid input, top_p is still {self.top_p}")
+                            except:
+                                c.privmsg(self.channel, f"Invalid input, top_p is still {self.top_p}")                                                      
+
+                    #repeat_penalty setting
+                    if message.startswith(".repeat_penalty "):
+                        if message == ".repeat_penalty reset":
+                            self.repeat_penalty = 1.5
+                            c.privmsg(self.channel, f"Repeat_penalty set to {self.repeat_penalty}")
+                        else:
+                            try:
+                                repeat_penalty = float(message.split(" ", 1)[1])
+                                if 0 <= repeat_penalty <=2:
+                                    self.repeat_penalty = repeat_penalty
+                                    c.privmsg(self.channel, f"Repeat_penalty set to {self.repeat_penalty}")
+                                else:
+                                    c.privmsg(self.channel, f"Invalid input, repeat_penalty is still {self.repeat_penalty}")
+                            except:
+                                c.privmsg(self.channel, f"Invalid input, repeat_penalty is still {self.repeat_penalty}")
+            
 
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
@@ -356,9 +427,22 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     ".stock to set to stock settings.", f".reset to reset to my default personality, {self.personality}.",
 
                 ]
+                admin_help = [
+                    "Admin commands", ".admins   List of users authorized to use these commands", ".models   List available models", ".model <model>   Change the model",
+                    ".temperature <#>   Set temperature value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)",
+                    ".top_p <#>   Set top_p value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)",
+                    ".repeat_penalty <#>   Set repeat_penalty between 0 and 2.  To reset to default, type reset instead of a number. (bot owner only)",
+                    ".clear   Reset bot for everyone (bot owner only)", ".gpersona <personality>   Change default global personality (bot owner only)",
+                    ".gpersona reset   Reset global personality (bot owner only)", ".auth <user>   Add an admin (bot owner only)", ".deauth <user>   Remove an admin (bot owner only)"
+
+]
                 for line in help:
                     c.notice(sender, line)
                     time.sleep(1)
+                if sender in self.admins:
+                    for line in admin_help:
+                        c.notice(sender, line)
+                        time.sleep(1)
                 
 if __name__ == "__main__":
     # create the bot and connect to the server
