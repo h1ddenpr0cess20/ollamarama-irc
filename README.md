@@ -21,7 +21,6 @@ You also need to install the irc and litellm modules
 ```
 pip3 install litellm irc
 ```
-Get an [OpenAI API](https://platform.openai.com/signup) key 
 
 Fill in the variables for channel, nickname, password and server in launcher.py.  
 Password is optional, but registration is required for some channels.
