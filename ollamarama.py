@@ -11,6 +11,7 @@ import time
 import textwrap
 import threading
 from litellm import completion
+import json
 
 class ollamarama(irc.bot.SingleServerIRCBot):
     def __init__(self, personality, channel, nickname, server, admins, password=None, port=6667):
@@ -29,30 +30,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #prompt parts
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
-        #put the models you want to use here, still testing various models
-        self.models = {
-            'zephyr': 'ollama/zephyr:7b-beta-q8_0',
-            'solar': 'ollama/solar',
-            'mistral': 'ollama/mistral',
-            'llama2': 'ollama/llama2',
-            'llama2-uncensored': 'ollama/llama2-uncensored',
-            'openchat': 'ollama/openchat',
-            'codellama': 'ollama/codellama:13b-instruct-q4_0',
-            'dolphin-mistral': 'ollama/dolphin2.2-mistral:7b-q8_0',
-            'deepseek-coder': 'ollama/deepseek-coder:6.7b',
-            'orca2': 'ollama/orca2',
-            'starling-lm': 'ollama/starling-lm',
-            'vicuna': 'ollama/vicuna:13b-q4_0',
-            'phi': 'ollama/phi',
-            'orca-mini': 'ollama/orca-mini',
-            'wizardcoder': 'ollama/wizardcoder:python',
-            'stablelm-zephyr': 'ollama/stablelm-zephyr',
-            'neural-chat': 'ollama/neural-chat',
-            'mistral-openorca': 'ollama/mistral-openorca',
-            'deepseek-llm': 'ollama/deepseek-llm:7b-chat',
-            'wizard-vicuna-uncensored': 'ollama/wizard-vicuna-uncensored'
-             
-        }
+        #open models.json and set variable
+        with open("models.json", "r") as f:
+            self.models = json.load(f)
+
         #set model
         self.default_model = self.models['zephyr']
         self.model = self.default_model
@@ -66,21 +47,21 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         
     def chop(self, message):
         lines = message.splitlines()
-        newlines = []  # Initialize an empty list to store wrapped lines
+        newlines = [] 
 
         for line in lines:
             if len(line) > 420:
-                wrapped_lines = textwrap.wrap(line,
-                                            width=420,
-                                            drop_whitespace=False,
-                                            replace_whitespace=False,
-                                            fix_sentence_endings=True,
-                                            break_long_words=False)
-                newlines.extend(wrapped_lines)  # Extend the list with wrapped lines
+                wrapped_lines = textwrap.wrap(
+                    line,
+                    width=420,
+                    drop_whitespace=False,
+                    replace_whitespace=False,
+                    fix_sentence_endings=True,
+                    break_long_words=False)
+                newlines.extend(wrapped_lines)
             else:
-                newlines.append(line)  # Add the original line to the list
-
-        return newlines  # Return the list of wrapped lines
+                newlines.append(line) 
+        return newlines  
     
     #resets bot to preset personality per user    
     def reset(self, sender):
@@ -119,18 +100,18 @@ class ollamarama(irc.bot.SingleServerIRCBot):
     def respond(self, c, sender, message, sender2=None):
         try:
             response = completion(
-                        api_base="http://localhost:11434",
-                        model=self.model,
-                        temperature=self.temperature,
-                        top_p=self.top_p,
-                        repeat_penalty=self.repeat_penalty,
-                        messages=message,
-                        timeout=60)    
+                api_base="http://localhost:11434",
+                model=self.model,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                repeat_penalty=self.repeat_penalty,
+                messages=message,
+                timeout=60)    
             response_text = response.choices[0].message.content
             
             # #removes any unwanted quotation marks from responses
-            # if response_text.startswith('"') and response_text.endswith('"'):
-            #     response_text = response_text.strip('"')
+            if response_text.startswith('"') and response_text.endswith('"'):
+                response_text = response_text.strip('"')
 
             #add the response text to the history before breaking it up
             self.add_history("assistant", sender, response_text)
@@ -176,16 +157,16 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         greet = "introduce yourself"
         try:
             response = completion(
-                            api_base="http://localhost:11434",
-                            model=self.model,
-                            temperature=self.temperature,
-                            top_p=self.top_p,
-                            repeat_penalty=self.repeat_penalty,
-                            messages=
-                            [
-                                {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]},
-                                {"role": "user", "content": greet}
-                            ])
+                api_base="http://localhost:11434",
+                model=self.model,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                repeat_penalty=self.repeat_penalty,
+                messages=
+                [
+                    {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]},
+                    {"role": "user", "content": greet}
+                ])
             response_text = response.choices[0].message.content
             lines = self.chop(response_text + f"  Type .help {self.nickname} to learn how to use me.")
             for line in lines:
@@ -263,7 +244,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                             c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
                 
                 
-                
+                #bot owner commands
                 if sender == self.admins[0]:
                     #reset history for all users                
                     if message == ".clear":
