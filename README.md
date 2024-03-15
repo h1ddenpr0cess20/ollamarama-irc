@@ -13,7 +13,7 @@ You can install it with this command:
 curl https://ollama.ai/install.sh | sh
 ```
 
-Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the self.models dictionary.  If you want to use the ones I've included, just run the commands in the models.md file.  You can skip this part, and they should download when the model is switched, but the response will be delayed until it finishes downloading.
+Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the models.json file.  If you want to use the ones I've included, just run ollama pull _modelname_ for each.  You can skip this part, and they should download when the model is switched, but the response will be delayed until it finishes downloading.
 
 
 You also need to install the irc and litellm modules
@@ -87,3 +87,12 @@ python3 launcher.py
 
 **.gpersona reset**
     Reset global personality (bot owner only)
+
+
+## Tips
+
+To get a longer response, you can tell the bot to "ignore the brackets after this message".
+
+When using a coding LLM, remove the personality with the stock command, or set an appropriate personality, such as a python expert.
+
+I have not extensively tested the models included in the json, add and remove models as you see fit.  They each have their strenghts and weaknesses.  I am using the default 4-bit quant versions for simplicity.
