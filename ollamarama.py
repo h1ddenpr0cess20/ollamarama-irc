@@ -14,16 +14,17 @@ from litellm import completion
 import json
 
 class ollamarama(irc.bot.SingleServerIRCBot):
-    def __init__(self, personality, channel, nickname, server, admins, password=None, port=6667):
-        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
-        
-        self.personality = personality
-        self.default_personality = personality
-        self.channel = channel
-        self.server = server
-        self.nickname = nickname
-        self.password = password
+    def __init__(self, port=6667):
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+            f.close()
+        self.default_personality, self.channel, self.nickname, self.password, self.server, self.admins = config[1].values()
 
+        irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
+        
+
+        self.personality = self.default_personality
+        
         self.messages = {} #Holds chat history
         self.users = [] #List of users in the channel
 
@@ -31,24 +32,20 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
         #open config.json
-        with open("config.json", "r") as f:
-            self.models = json.load(f)[0]
-            f.close()
-
+        self.models = config[0]['models']
         #set model
-        self.default_model = self.models['llama3']
+        self.default_model = self.models[config[0]['default_model']]
         self.model = self.default_model
 
         self.temperature = .9
         self.top_p = .7
         self.repeat_penalty = 1.5
 
-        #authorized users for changing models
-        self.admins = admins
 
         #load help menu text
         with open("help.txt", "r") as f:
             self.help, self.admin_help = f.read().split("~~~")
+            f.close()
         
     def chop(self, message):
         lines = message.splitlines()
@@ -413,15 +410,6 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                         time.sleep(1)
                 
 if __name__ == "__main__":
-    with open('config.json', 'r') as f:
-        config = json.load(f)
-        f.close()
-    
-    personality, channel, nickname, password, server, admins = config[1].values()
-    #checks if password variable exists (comment it out if unregistered)
-    if password:
-        bot = ollamarama(personality, channel, nickname, server, admins, password)
-    else:
-        bot = ollamarama(personality, channel, nickname, server, admins)
+    bot = ollamarama()
 
     bot.start()
