@@ -15,38 +15,41 @@ import json
 
 class ollamarama(irc.bot.SingleServerIRCBot):
     def __init__(self, port=6667):
+        #load config
         with open('config.json', 'r') as f:
             config = json.load(f)
             f.close()
         self.default_personality, self.channel, self.nickname, self.password, self.server, self.admins = config[1].values()
 
         irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
-        
 
-        self.personality = self.default_personality
-        
-        self.messages = {} #Holds chat history
-        self.users = [] #List of users in the channel
-
-        #prompt parts
-        self.prompt = ("you are ", ". speak in the first person and never break character.")
-
-        #open config.json
+        #load models, set default model
         self.models = config[0]['models']
-        #set model
         self.default_model = self.models[config[0]['default_model']]
         self.model = self.default_model
 
+        #default tuning, no idea if optimal, tweak as needed
         self.temperature = .9
         self.top_p = .7
         self.repeat_penalty = 1.5
+        
+        #set personality
+        self.personality = self.default_personality
+        #prompt parts
+        self.prompt = ("you are ", ". speak in the first person and never break character.")
 
+        #chat history
+        self.messages = {}
+
+        #user list
+        self.users = []
 
         #load help menu text
         with open("help.txt", "r") as f:
             self.help, self.admin_help = f.read().split("~~~")
             f.close()
-        
+    
+    #chops up message for irc line length limit    
     def chop(self, message):
         lines = message.splitlines()
         newlines = [] 
@@ -245,7 +248,6 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                                 self.model = self.default_model
                             c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
                 
-                
                 #bot owner commands
                 if sender == self.admins[0]:
                     #reset history for all users                
@@ -329,7 +331,6 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                             except:
                                 c.privmsg(self.channel, f"Invalid input, repeat_penalty is still {self.repeat_penalty}")
             
-
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
                 m = message.split(" ", 1)
