@@ -13,7 +13,7 @@ You can install it with this command:
 curl https://ollama.ai/install.sh | sh
 ```
 
-Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the models.json file.  If you want to use the ones I've included, just run ollama pull _modelname_ for each.  You can skip this part, and they should download when the model is switched, but the response will be delayed until it finishes downloading.
+Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the config.json file.  If you want to use the ones I've included, just run ollama pull _modelname_ for each.  You can skip this part, and they should download when the model is switched, but the response will be delayed until it finishes downloading.
 
 
 You also need to install the irc and litellm modules
@@ -22,13 +22,13 @@ You also need to install the irc and litellm modules
 pip3 install litellm irc
 ```
 
-Fill in the variables for channel, nickname, password and server in launcher.py.  
+Fill in the variables for channel, nickname, password and server in config.json 
 Password is optional, but registration is required for some channels.
 
 ## Use
 
 ```
-python3 launcher.py
+python3 ollamarama.py
 ```
 
 **.ai _message_ or botname: _message_**

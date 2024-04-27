@@ -30,12 +30,13 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #prompt parts
         self.prompt = ("you are ", ". speak in the first person and never break character.")
 
-        #open models.json and set variable
-        with open("models.json", "r") as f:
-            self.models = json.load(f)
+        #open config.json
+        with open("config.json", "r") as f:
+            self.models = json.load(f)[0]
+            f.close()
 
         #set model
-        self.default_model = self.models['zephyr']
+        self.default_model = self.models['llama3']
         self.model = self.default_model
 
         self.temperature = .9
@@ -44,6 +45,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
         #authorized users for changing models
         self.admins = admins
+
+        #load help menu text
+        with open("help.txt", "r") as f:
+            self.help, self.admin_help = f.read().split("~~~")
         
     def chop(self, message):
         lines = message.splitlines()
@@ -143,13 +148,13 @@ class ollamarama(irc.bot.SingleServerIRCBot):
     def on_welcome(self, c, e):
         #if nick has a password
         if self.password != None:
-          c.privmsg("NickServ", f"IDENTIFY {self.password}")
-          #wait for identify to finish
-          time.sleep(5)
+            c.privmsg("NickServ", f"IDENTIFY {self.password}")
+            #wait for identify to finish
+            time.sleep(5)
         
         #join channel
         c.join(self.channel)
-              
+
         # get users in channel
         c.send_raw("NAMES " + self.channel)
 
@@ -356,7 +361,6 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                             
                             #if so, respond, otherwise ignore
                             if user in self.messages:
-                               
                                 self.add_history("user", user, m)
                                 thread = threading.Thread(target=self.respond, args=(c, user, self.messages[user],), kwargs={'sender2': sender})
                                 thread.start()
@@ -400,47 +404,24 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
             #help menu    
             if message.startswith(f".help {self.nickname}"):
-                help = [
-                    "I am an AI chatbot.  I can have any personality you want me to have.  Each user has their own chat history and personality setting.",
-                    f".ai <message> or {self.nickname}: <message> to talk to me.", ".x <user> <message> to talk to another user's history for collaboration.",
-                    ".persona <personality> to change my personality. I can be any personality type, character, inanimate object, place, concept.", 
-                    ".custom <prompt> to use a custom system prompt instead of a persona",
-                    ".stock to set to stock settings.", f".reset to reset to my default personality, {self.personality}.",
-
-                ]
-                admin_help = [
-                    "Admin commands", ".admins   List of users authorized to use these commands", ".models   List available models", ".model <model>   Change the model",
-                    ".temperature <#>   Set temperature value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)",
-                    ".top_p <#>   Set top_p value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)",
-                    ".repeat_penalty <#>   Set repeat_penalty between 0 and 2.  To reset to default, type reset instead of a number. (bot owner only)",
-                    ".clear   Reset bot for everyone (bot owner only)", ".gpersona <personality>   Change default global personality (bot owner only)",
-                    ".gpersona reset   Reset global personality (bot owner only)", ".auth <user>   Add an admin (bot owner only)", ".deauth <user>   Remove an admin (bot owner only)"
-
-]
-                for line in help:
+                for line in self.help.splitlines():
                     c.notice(sender, line)
                     time.sleep(1)
                 if sender in self.admins:
-                    for line in admin_help:
+                    for line in self.admin_help.splitlines():
                         c.notice(sender, line)
                         time.sleep(1)
                 
 if __name__ == "__main__":
-    # create the bot and connect to the server
-    personality = "a helpful and thorough AI assistant who provides accurate and detailed answers without being too verbose"  #you can put anything here.  A character, person, personality type, object, concept, emoji, etc
-    channel = "#CHANNEL"
-    nickname = "NICKNAME"
-    #password = "PASSWORD"
-    server = "SERVER"
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+        f.close()
     
-    #list of nicks allowed to change bot settings
-    admins = ['admin_name1', 'admin_name2',]
-
+    personality, channel, nickname, password, server, admins = config[1].values()
     #checks if password variable exists (comment it out if unregistered)
-    try:
-      bot = ollamarama(personality, channel, nickname, server, admins, password)
-    except:
-      bot = ollamarama(personality, channel, nickname, server, admins)
-      
-    bot.start()
+    if password:
+        bot = ollamarama(personality, channel, nickname, server, admins, password)
+    else:
+        bot = ollamarama(personality, channel, nickname, server, admins)
 
+    bot.start()
