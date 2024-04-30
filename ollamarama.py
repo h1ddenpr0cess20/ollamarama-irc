@@ -283,53 +283,27 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                                 self.personality = m
                             c.privmsg(self.channel, f"Global personality set to {self.personality}")
 
-                    #temperature setting
-                    if message.startswith(".temperature "):
-                        if message == ".temperature reset":
-                            self.temperature = .9
-                            c.privmsg(self.channel, f"Temperature set to {self.temperature}")
-                        else:
-                            try:
-                                temp = float(message.split(" ", 1)[1])
-                                if 0 <= temp <=1:
-                                    self.temperature = temp
-                                    c.privmsg(self.channel, f"Temperature set to {self.temperature}")
-                                else:
-                                    c.privmsg(self.channel, f"Invalid input, temperature is still {self.temperature}")
-                            except:
-                                c.privmsg(self.channel, f"Invalid input, temperature is still {self.temperature}")
+                    if message.startswith((".temperature ", ".top_p ", ".repeat_penalty ")):
+                        attr_name = message.split()[0][1:]
+                        min_val, max_val, default_val = {
+                            "temperature": (0, 1, 0.9),
+                            "top_p": (0, 1, 0.7),
+                            "repeat_penalty": (0, 2, 1.5)
+                        }[attr_name]
 
-                    #top_p setting
-                    if message.startswith(".top_p "):
-                        if message == ".top_p reset":
-                            self.top_p = .7
-                            c.privmsg(self.channel, f"Top_p set to {self.top_p}")
+                        if message.endswith(" reset"):
+                            setattr(self, attr_name, default_val)
+                            c.privmsg(self.channel, f"{attr_name.capitalize()} set to {default_val}")
                         else:
                             try:
-                                top_p = float(message.split(" ", 1)[1])
-                                if 0 <= top_p <=1:
-                                    self.top_p = top_p
-                                    c.privmsg(self.channel, f"Top_p set to {self.top_p}")
+                                value = float(message.split(" ", 1)[1])
+                                if min_val <= value <= max_val:
+                                    setattr(self, attr_name, value)
+                                    c.privmsg(self.channel, f"{attr_name.capitalize()} set to {value}")
                                 else:
-                                    c.privmsg(self.channel, f"Invalid input, top_p is still {self.top_p}")
+                                    c.privmsg(self.channel, f"Invalid input, {attr_name} is still {getattr(self, attr_name)}")
                             except:
-                                c.privmsg(self.channel, f"Invalid input, top_p is still {self.top_p}")                                                      
-
-                    #repeat_penalty setting
-                    if message.startswith(".repeat_penalty "):
-                        if message == ".repeat_penalty reset":
-                            self.repeat_penalty = 1.5
-                            c.privmsg(self.channel, f"Repeat_penalty set to {self.repeat_penalty}")
-                        else:
-                            try:
-                                repeat_penalty = float(message.split(" ", 1)[1])
-                                if 0 <= repeat_penalty <=2:
-                                    self.repeat_penalty = repeat_penalty
-                                    c.privmsg(self.channel, f"Repeat_penalty set to {self.repeat_penalty}")
-                                else:
-                                    c.privmsg(self.channel, f"Invalid input, repeat_penalty is still {self.repeat_penalty}")
-                            except:
-                                c.privmsg(self.channel, f"Invalid input, repeat_penalty is still {self.repeat_penalty}")
+                                c.privmsg(self.channel, f"Invalid input, {attr_name} is still {getattr(self, attr_name)}")
             
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
