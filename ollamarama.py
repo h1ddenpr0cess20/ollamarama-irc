@@ -16,17 +16,18 @@ import json
 class ollamarama(irc.bot.SingleServerIRCBot):
     def __init__(self, port=6667):
         #load config
-        with open('config.json', 'r') as f:
+        self.config_file = "config_test.json"
+        with open(self.config_file, 'r') as f:
             config = json.load(f)
             f.close()
-        self.default_personality, self.channel, self.nickname, self.password, self.server, self.admins = config[1].values()
-
-        irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
-
         #load models, set default model
         self.models = config[0]['models']
         self.default_model = self.models[config[0]['default_model']]
         self.model = self.default_model
+
+        self.default_personality, self.channel, self.nickname, self.password, self.server, self.admins = config[1].values()
+
+        irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
 
         #default tuning, no idea if optimal, tweak as needed
         self.temperature = .9
@@ -36,7 +37,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #set personality
         self.personality = self.default_personality
         #prompt parts
-        self.prompt = ("you are ", ". speak in the first person and never break character.")
+        self.prompt = ("you are ", ". speak in the first person and never break character.  keep your responses brief and to the point.")
 
         #chat history
         self.messages = {}
@@ -236,6 +237,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             if sender in self.admins:
                 #model switching 
                 if message.startswith(".model"):
+                    with open(self.config_file, 'r') as f:
+                        config = json.load(f)
+                        f.close()
+                    self.models = config[0]['models']
                     if message == ".models":
                         c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
                         c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
@@ -283,58 +288,32 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                                 self.personality = m
                             c.privmsg(self.channel, f"Global personality set to {self.personality}")
 
-                    #temperature setting
-                    if message.startswith(".temperature "):
-                        if message == ".temperature reset":
-                            self.temperature = .9
-                            c.privmsg(self.channel, f"Temperature set to {self.temperature}")
-                        else:
-                            try:
-                                temp = float(message.split(" ", 1)[1])
-                                if 0 <= temp <=1:
-                                    self.temperature = temp
-                                    c.privmsg(self.channel, f"Temperature set to {self.temperature}")
-                                else:
-                                    c.privmsg(self.channel, f"Invalid input, temperature is still {self.temperature}")
-                            except:
-                                c.privmsg(self.channel, f"Invalid input, temperature is still {self.temperature}")
+                    if message.startswith((".temperature ", ".top_p ", ".repeat_penalty ")):
+                        attr_name = message.split()[0][1:]
+                        min_val, max_val, default_val = {
+                            "temperature": (0, 1, 0.9),
+                            "top_p": (0, 1, 0.7),
+                            "repeat_penalty": (0, 2, 1.5)
+                        }[attr_name]
 
-                    #top_p setting
-                    if message.startswith(".top_p "):
-                        if message == ".top_p reset":
-                            self.top_p = .7
-                            c.privmsg(self.channel, f"Top_p set to {self.top_p}")
+                        if message.endswith(" reset"):
+                            setattr(self, attr_name, default_val)
+                            c.privmsg(self.channel, f"{attr_name.capitalize()} set to {default_val}")
                         else:
                             try:
-                                top_p = float(message.split(" ", 1)[1])
-                                if 0 <= top_p <=1:
-                                    self.top_p = top_p
-                                    c.privmsg(self.channel, f"Top_p set to {self.top_p}")
+                                value = float(message.split(" ", 1)[1])
+                                if min_val <= value <= max_val:
+                                    setattr(self, attr_name, value)
+                                    c.privmsg(self.channel, f"{attr_name.capitalize()} set to {value}")
                                 else:
-                                    c.privmsg(self.channel, f"Invalid input, top_p is still {self.top_p}")
+                                    c.privmsg(self.channel, f"Invalid input, {attr_name} is still {getattr(self, attr_name)}")
                             except:
-                                c.privmsg(self.channel, f"Invalid input, top_p is still {self.top_p}")                                                      
-
-                    #repeat_penalty setting
-                    if message.startswith(".repeat_penalty "):
-                        if message == ".repeat_penalty reset":
-                            self.repeat_penalty = 1.5
-                            c.privmsg(self.channel, f"Repeat_penalty set to {self.repeat_penalty}")
-                        else:
-                            try:
-                                repeat_penalty = float(message.split(" ", 1)[1])
-                                if 0 <= repeat_penalty <=2:
-                                    self.repeat_penalty = repeat_penalty
-                                    c.privmsg(self.channel, f"Repeat_penalty set to {self.repeat_penalty}")
-                                else:
-                                    c.privmsg(self.channel, f"Invalid input, repeat_penalty is still {self.repeat_penalty}")
-                            except:
-                                c.privmsg(self.channel, f"Invalid input, repeat_penalty is still {self.repeat_penalty}")
+                                c.privmsg(self.channel, f"Invalid input, {attr_name} is still {getattr(self, attr_name)}")
             
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
                 m = message.split(" ", 1)
-                m = m[1] + " [your response must be one paragraph or less]"
+                m = m[1]
 
                 #add to history and start respond thread
                 self.add_history("user", sender, m)
@@ -355,7 +334,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     for name in self.users:
                         if type(name) == str and m[0] == name:
                             user = m[0]
-                            m = m[1] + " [your response must be one paragraph or less]"
+                            m = m[1]
                             
                             #if so, respond, otherwise ignore
                             if user in self.messages:
@@ -368,7 +347,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             #change personality    
             if message.startswith(".persona "):
                 m = message.split(" ", 1)
-                m = m[1] + " [your response must be one paragraph or less]"
+                m = m[1]
                 
                 self.persona(m, sender)
                 thread = threading.Thread(target=self.respond, args=(c, sender, self.messages[sender]))
