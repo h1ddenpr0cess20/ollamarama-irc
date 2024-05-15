@@ -15,7 +15,7 @@
         "default_model": "llama3"
     },
     {
-        "personality": "a minimalist AI assistant (do not give yourself a name)",
+        "personality": "a minimalist AI assistant who provides longer responses when requested (do not give yourself a name)",
         "channel": "#CHANNEL",
         "nickname": "BOTNAME",
         "password": null,
