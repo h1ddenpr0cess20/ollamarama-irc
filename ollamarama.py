@@ -16,17 +16,18 @@ import json
 class ollamarama(irc.bot.SingleServerIRCBot):
     def __init__(self, port=6667):
         #load config
-        with open('config.json', 'r') as f:
+        self.config_file = "config_test.json"
+        with open(self.config_file, 'r') as f:
             config = json.load(f)
             f.close()
-        self.default_personality, self.channel, self.nickname, self.password, self.server, self.admins = config[1].values()
-
-        irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
-
         #load models, set default model
         self.models = config[0]['models']
         self.default_model = self.models[config[0]['default_model']]
         self.model = self.default_model
+
+        self.default_personality, self.channel, self.nickname, self.password, self.server, self.admins = config[1].values()
+
+        irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
 
         #default tuning, no idea if optimal, tweak as needed
         self.temperature = .9
@@ -36,7 +37,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #set personality
         self.personality = self.default_personality
         #prompt parts
-        self.prompt = ("you are ", ". speak in the first person and never break character.")
+        self.prompt = ("you are ", ". speak in the first person and never break character.  keep your responses brief and to the point.")
 
         #chat history
         self.messages = {}
@@ -236,6 +237,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             if sender in self.admins:
                 #model switching 
                 if message.startswith(".model"):
+                    with open(self.config_file, 'r') as f:
+                        config = json.load(f)
+                        f.close()
+                    self.models = config[0]['models']
                     if message == ".models":
                         c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
                         c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
@@ -308,7 +313,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             #basic use
             if message.startswith(".ai") or message.startswith(self.nickname):
                 m = message.split(" ", 1)
-                m = m[1] + " [your response must be one paragraph or less]"
+                m = m[1]
 
                 #add to history and start respond thread
                 self.add_history("user", sender, m)
@@ -329,7 +334,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     for name in self.users:
                         if type(name) == str and m[0] == name:
                             user = m[0]
-                            m = m[1] + " [your response must be one paragraph or less]"
+                            m = m[1]
                             
                             #if so, respond, otherwise ignore
                             if user in self.messages:
@@ -342,7 +347,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             #change personality    
             if message.startswith(".persona "):
                 m = message.split(" ", 1)
-                m = m[1] + " [your response must be one paragraph or less]"
+                m = m[1]
                 
                 self.persona(m, sender)
                 thread = threading.Thread(target=self.respond, args=(c, sender, self.messages[sender]))

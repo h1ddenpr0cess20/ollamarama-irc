@@ -8,16 +8,14 @@
             "zephyr": "ollama/zephyr",
             "solar": "ollama/solar",
             "mistral": "ollama/mistral",
-            "codellama": "ollama/codellama",
             "dolphin-mistral": "ollama/dolphin-mistral",
-            "dolphin-llama3": "ollama/dolphin-llama3",
-            "gemma": "ollama/gemma",
-            "codegemma": "ollama/codegemma"
+            "dolphin-llama3": "ollama/dolphin-llama3"
+            
         },
         "default_model": "llama3"
     },
     {
-        "personality": "a helpful and thorough AI assistant who provides accurate and detailed answers without being too verbose",
+        "personality": "a minimalist AI assistant (do not give yourself a name)",
         "channel": "#CHANNEL",
         "nickname": "BOTNAME",
         "password": null,
