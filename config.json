@@ -1,28 +1,40 @@
-[
+{   
+    "ollama":
     {
+        "api_base": "http://localhost:11434",
+        "options":
+        {
+            "temperature": 0.8,
+            "top_p": 0.7,
+            "repeat_penalty": 1.2
+        },
         "models":
         {
-            "llama3": "ollama/llama3",
-            "wizardlm2": "ollama/wizardlm2",
-            "phi3": "ollama/phi3",
-            "zephyr": "ollama/zephyr",
-            "solar": "ollama/solar",
-            "mistral": "ollama/mistral",
-            "dolphin-mistral": "ollama/dolphin-mistral",
-            "dolphin-llama3": "ollama/dolphin-llama3"
-            
+            "llama3": "llama3:8b-instruct-q5_K_M",
+            "wizardlm2": "wizardlm2:7b-q5_K_M",
+            "phi3": "phi3:14b-medium-4k-instruct-q5_K_M",
+            "zephyr": "zephyr:7b-beta-q5_K_M",
+            "solar": "solar:10.7b-instruct-v1-q5_K_M",
+            "mistral": "mistral:7b-instruct-v0.2-q5_K_M",
+            "dolphin-mistral": "dolphin-mistral:7b-v2.8-q5_K_M",
+            "dolphin-llama3": "dolphin-llama3:8b-v2.9-q5_K_M",
+            "llama3.1": "llama3.1:8b-instruct-q5_K_M"
+        
         },
-        "default_model": "llama3"
+        "default_model": "llama3.1",
+        "prompt": ["you are ", ". speak in the first person and never break character.  keep your responses brief and to the point."],
+        "personality": "a minimalist AI assistant who provides longer responses when requested"
     },
+    "irc":
     {
-        "personality": "a minimalist AI assistant (do not give yourself a name)",
-        "channel": "#CHANNEL",
-        "nickname": "BOTNAME",
+        
+        "channel": "#ollamarama",
+        "nickname": "ollamarama",
         "password": null,
-        "server": "irc.SERVER.net",
+        "server": "irc.SERVER.TLD",
         "admins":
         [
-            "admin1"
+            "admin_name"
         ]
     }
-]
+}

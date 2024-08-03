@@ -1,28 +1,28 @@
 # ollamarama-irc
-Ollamarama is an AI chatbot for IRC which uses offline LLMs with LiteLLM and Ollama.  It can roleplay as almost anything you can think of.  You can set any default personality you would like.  It can be changed at any time, and each user has their own separate chat history with their chosen personality setting.  Users can interact with each others chat histories for collaboration if they would like, but otherwise, conversations are separated.
+Ollamarama is an AI chatbot for IRC which uses local LLMs with Ollama.  It can roleplay as almost anything you can think of.  You can set any default personality you would like.  It can be changed at any time, and each user has their own separate chat history with their chosen personality setting.  Users can interact with each others chat histories for collaboration if they would like, but otherwise, conversations are separated.
 
 Also available for the Matrix chat protocol at [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/).  Terminal-based version at [ollamarama](https://github.com/h1ddenpr0cess20/ollamarama)
 
 Based on my earlier project, InfiniGPT, which uses OpenAI, available at [infinigpt-irc](https://github.com/h1ddenpr0cess20/infinigpt-irc)
 
 ## Setup
-Install and familiarize yourself with [Ollama](https://ollama.ai/), make sure you can run offline LLMs, etc.
+Install and familiarize yourself with [Ollama](https://ollama.ai/), make sure you can run local LLMs, etc.
 
 You can install it with this command:
 ```
 curl https://ollama.ai/install.sh | sh
 ```
 
-Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the config.json file.  If you want to use the ones I've included, just run ollama pull _modelname_ for each.  You can skip this part, and they should download when the model is switched, but the response will be delayed until it finishes downloading.
+Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the config.json file.  If you want to use the ones I've included, just run ollama pull _modelname_ for each.
 
 
-You also need to install the irc and litellm modules
+You also need to install the irc module
 
 ```
-pip3 install litellm irc
+pip3 install irc
 ```
 
-Fill in the variables for channel, nickname, password and server in config.json 
+Fill in the values for channel, nickname, password and server in config.json 
 Password is optional, but registration is required for some channels.
 
 ## Use
@@ -87,12 +87,3 @@ python3 ollamarama.py
 
 **.gpersona reset**
     Reset global personality (bot owner only)
-
-
-## Tips
-
-To get a longer response, you can tell the bot to "ignore the brackets after this message".
-
-When using a coding LLM, remove the personality with the stock command, or set an appropriate personality, such as a python expert.
-
-I have not extensively tested the models included in the json, add and remove models as you see fit.  They each have their strenghts and weaknesses.  I am using the default 4-bit quant versions for simplicity.
