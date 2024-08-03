@@ -1,6 +1,6 @@
 '''
 ollamarama-irc
-    An ollama chatbot for internet relay chat with infinite personalities
+    An ollama chatbot for irc with infinite personalities
     written by Dustin Whyte
     December 2023
 
@@ -10,34 +10,34 @@ import irc.bot
 import time
 import textwrap
 import threading
-from litellm import completion
 import json
+import requests
 
 class ollamarama(irc.bot.SingleServerIRCBot):
     def __init__(self, port=6667):
         #load config
-        self.config_file = "config_test.json"
+        self.config_file = "config.json"
         with open(self.config_file, 'r') as f:
             config = json.load(f)
             f.close()
         #load models, set default model
-        self.models = config[0]['models']
-        self.default_model = self.models[config[0]['default_model']]
+        self.models = config["ollama"]["models"]
+        self.default_model = self.models[config["ollama"]["default_model"]]
         self.model = self.default_model
 
-        self.default_personality, self.channel, self.nickname, self.password, self.server, self.admins = config[1].values()
-
+        self.channel, self.nickname, self.password, self.server, self.admins = config["irc"].values()
         irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
 
-        #default tuning, no idea if optimal, tweak as needed
-        self.temperature = .9
-        self.top_p = .7
-        self.repeat_penalty = 1.5
-        
-        #set personality
+        self.default_personality = config["ollama"]["personality"]
         self.personality = self.default_personality
-        #prompt parts
-        self.prompt = ("you are ", ". speak in the first person and never break character.  keep your responses brief and to the point.")
+        self.prompt = config["ollama"]["prompt"]
+        self.temperature, self.top_p, self.repeat_penalty = config["ollama"]["options"].values()
+        self.defaults = {
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+            "repeat_penalty": self.repeat_penalty
+        }
+        self.api_url = config["ollama"]["api_base"] + "/api/chat"
 
         #chat history
         self.messages = {}
@@ -82,8 +82,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             self.messages[sender].clear()
         personality = self.prompt[0] + persona + self.prompt[1]
         self.add_history("system", sender, personality)
+        self.add_history("user", sender, "introduce yourself")
+        
 
-    #set a custom prompt (such as one from awesome-chatgpt-prompts)
+    #set a custom system prompt
     def custom(self, prompt, sender):
         #clear existing history
         if sender in self.messages:
@@ -105,20 +107,21 @@ class ollamarama(irc.bot.SingleServerIRCBot):
     #respond with ai model           
     def respond(self, c, sender, message, sender2=None):
         try:
-            response = completion(
-                api_base="http://localhost:11434",
-                model=self.model,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                repeat_penalty=self.repeat_penalty,
-                messages=message,
-                timeout=60)    
-            response_text = response.choices[0].message.content
+            data = {
+                "model": self.model, 
+                "messages": message, 
+                "stream": False,
+                "options": {
+                    "top_p": self.top_p,
+                    "temperature": self.temperature,
+                    "repeat_penalty": self.repeat_penalty
+                    }
+                }
+            response = requests.post(self.api_url, json=data)
+            response.raise_for_status()
+            data = response.json()
             
-            # #removes any unwanted quotation marks from responses
-            if response_text.startswith('"') and response_text.endswith('"'):
-                response_text = response_text.strip('"')
-
+            response_text = data["message"]["content"]
             #add the response text to the history before breaking it up
             self.add_history("assistant", sender, response_text)
 
@@ -136,11 +139,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             for line in lines:
                 c.privmsg(self.channel, line)
                 time.sleep(2)
-
-        except Exception as x: #improve this later with specific errors (token error, invalid request error etc)
+        except Exception as x:
             c.privmsg(self.channel, "Something went wrong, try again.")
-            print(x)
-
+            print(x)   
+        
         #trim history for token size management
         if len(self.messages[sender]) > 24:
             del self.messages[sender][1:3]
@@ -162,18 +164,23 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #optional join message
         greet = "introduce yourself"
         try:
-            response = completion(
-                api_base="http://localhost:11434",
-                model=self.model,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                repeat_penalty=self.repeat_penalty,
-                messages=
-                [
+            data = {
+                "model": self.model, 
+                "messages": [
                     {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]},
                     {"role": "user", "content": greet}
-                ])
-            response_text = response.choices[0].message.content
+                ], 
+                "stream": False,
+                "options": {
+                    "top_p": self.top_p,
+                    "temperature": self.temperature,
+                    "repeat_penalty": self.repeat_penalty
+                    }
+                }
+            response = requests.post(self.api_url, json=data)
+            response.raise_for_status()
+            data = response.json()
+            response_text = data["message"]["content"]
             lines = self.chop(response_text + f"  Type .help {self.nickname} to learn how to use me.")
             for line in lines:
                 c.privmsg(self.channel, line)
@@ -193,15 +200,27 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         if user not in self.users:
             self.users.append(user)
 
-    # Optional greeting for when a user joins        
+        # # Optional greeting for when a user joins        
         # greet = f"come up with a unique greeting for the user {user}"
         # if user != self.nickname:
         #     try:
-        #         response = completion(model=self.model, 
-        #                 messages=[
-        #                     {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]}, 
-        #                     {"role": "user", "content": greet}])
-        #         response_text = response.choices[0].message.content
+        #         data = {
+        #             "model": self.model, 
+        #             "messages":[
+        #                         {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]}, 
+        #                         {"role": "user", "content": greet}], 
+        #             "stream": False,
+        #             "options": {
+        #                 "top_p": self.top_p,
+        #                 "temperature": self.temperature,
+        #                 "repeat_penalty": self.repeat_penalty
+        #                 }
+        #             }
+        #         response = requests.post(self.api_url, json=data)
+        #         response.raise_for_status()
+        #         data = response.json()
+        #         response_text = data["message"]["content"]
+                
         #         time.sleep(5)
         #         lines = self.chop(response_text)
         #         for line in lines:
@@ -240,9 +259,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     with open(self.config_file, 'r') as f:
                         config = json.load(f)
                         f.close()
-                    self.models = config[0]['models']
+                    self.models = config["ollama"]["models"]
                     if message == ".models":
-                        c.privmsg(self.channel, f"Current model: {self.model.removeprefix('ollama/')}")
+                        c.privmsg(self.channel, f"Current model: {self.model}")
                         c.privmsg(self.channel, f"Available models: {', '.join(sorted(list(self.models)))}")
                     if message.startswith(".model "):
                         m = message.split(" ", 1)[1]
@@ -251,7 +270,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                                 self.model = self.models[m]
                             elif m == 'reset':
                                 self.model = self.default_model
-                            c.privmsg(self.channel, f"Model set to {self.model.removeprefix('ollama/')}")
+                            c.privmsg(self.channel, f"Model set to {self.model}")
                 
                 #bot owner commands
                 if sender == self.admins[0]:
@@ -259,9 +278,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     if message == ".clear":
                         self.messages.clear()
                         self.model = self.default_model
-                        self.temperature = .9
-                        self.top_p = .7
-                        self.repeat_penalty = 1.5
+                        self.temperature, self.top_p, self.repeat_penalty = self.defaults
                         c.privmsg(self.channel, "Bot has been reset for everyone")
                         
                     #add admins
@@ -291,9 +308,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                     if message.startswith((".temperature ", ".top_p ", ".repeat_penalty ")):
                         attr_name = message.split()[0][1:]
                         min_val, max_val, default_val = {
-                            "temperature": (0, 1, 0.9),
-                            "top_p": (0, 1, 0.7),
-                            "repeat_penalty": (0, 2, 1.5)
+                            "temperature": (0, 1, self.defaults["temperature"]),
+                            "top_p": (0, 1, self.defaults["top_p"]),
+                            "repeat_penalty": (0, 2, self.defaults["repeat_penalty"])
                         }[attr_name]
 
                         if message.endswith(" reset"):
