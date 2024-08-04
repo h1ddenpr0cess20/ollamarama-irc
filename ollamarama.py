@@ -20,17 +20,19 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         with open(self.config_file, 'r') as f:
             config = json.load(f)
             f.close()
+        
+        self.channel, self.nickname, self.password, self.server, self.admins = config["irc"].values()
+        irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
+
         #load models, set default model
         self.models = config["ollama"]["models"]
         self.default_model = self.models[config["ollama"]["default_model"]]
         self.model = self.default_model
-
-        self.channel, self.nickname, self.password, self.server, self.admins = config["irc"].values()
-        irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
-
+        #set personality and system prompt
         self.default_personality = config["ollama"]["personality"]
         self.personality = self.default_personality
         self.prompt = config["ollama"]["prompt"]
+
         self.temperature, self.top_p, self.repeat_penalty = config["ollama"]["options"].values()
         self.defaults = {
             "temperature": self.temperature,
@@ -121,7 +123,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             response.raise_for_status()
             data = response.json()
             
-            response_text = data["message"]["content"]
+            response_text = data["message"]["content"].strip('"')
             #add the response text to the history before breaking it up
             self.add_history("assistant", sender, response_text)
 
@@ -145,7 +147,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         
         #trim history for token size management
         if len(self.messages[sender]) > 24:
-            del self.messages[sender][1:3]
+            if self.messages[sender][0]['role'] == "system":
+                del self.messages[sender][1:3]
+            else:
+                del self.messages[sender][0:2]
 
     #when bot joins network, identify and wait, then join channel   
     def on_welcome(self, c, e):
@@ -163,11 +168,12 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
         #optional join message
         greet = "introduce yourself"
+        system = self.prompt[0] + self.personality + self.prompt[1]
         try:
             data = {
                 "model": self.model, 
                 "messages": [
-                    {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]},
+                    {"role": "system", "content": system},
                     {"role": "user", "content": greet}
                 ], 
                 "stream": False,
@@ -180,7 +186,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             response = requests.post(self.api_url, json=data)
             response.raise_for_status()
             data = response.json()
-            response_text = data["message"]["content"]
+            response_text = data["message"]["content"].strip('"')
             lines = self.chop(response_text + f"  Type .help {self.nickname} to learn how to use me.")
             for line in lines:
                 c.privmsg(self.channel, line)
@@ -200,14 +206,15 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         if user not in self.users:
             self.users.append(user)
 
-        # # Optional greeting for when a user joins        
+        # Optional greeting for when a user joins        
         # greet = f"come up with a unique greeting for the user {user}"
+        # system = self.prompt[0] + self.personality + self.prompt[1]
         # if user != self.nickname:
         #     try:
         #         data = {
         #             "model": self.model, 
         #             "messages":[
-        #                         {"role": "system", "content": self.prompt[0] + self.personality + self.prompt[1]}, 
+        #                         {"role": "system", "content": system}, 
         #                         {"role": "user", "content": greet}], 
         #             "stream": False,
         #             "options": {
@@ -219,7 +226,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         #         response = requests.post(self.api_url, json=data)
         #         response.raise_for_status()
         #         data = response.json()
-        #         response_text = data["message"]["content"]
+        #         response_text = data["message"]["content"].strip('"')
                 
         #         time.sleep(5)
         #         lines = self.chop(response_text)
