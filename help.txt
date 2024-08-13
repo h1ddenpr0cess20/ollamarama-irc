@@ -5,7 +5,7 @@ I am an AI chatbot.  I can have any personality you want me to have.  Each user 
 .custom <prompt> to use a custom system prompt instead of a persona
 .stock to set to stock settings.
 .reset to reset to default personality.
-https://github.com/h1ddenpr0cess20/ollamarama-irc
+Available at https://github.com/h1ddenpr0cess20/ollamarama-irc
 ~~~
 Admin commands
 .admins   List of users authorized to use these commands
