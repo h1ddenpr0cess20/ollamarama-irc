@@ -16,7 +16,7 @@ import requests
 class ollamarama(irc.bot.SingleServerIRCBot):
     def __init__(self, port=6667):
         #load config
-        self.config_file = "config.json"
+        self.config_file = "config_test.json"
         with open(self.config_file, 'r') as f:
             config = json.load(f)
             f.close()
@@ -93,6 +93,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         if sender in self.messages:
             self.messages[sender].clear()
         self.add_history("system", sender, prompt)
+        self.add_history("user", sender, "introduce yourself")
 
     #adds messages to self.messages    
     def add_history(self, role, sender, message):
@@ -123,7 +124,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             response.raise_for_status()
             data = response.json()
             
-            response_text = data["message"]["content"].strip('"')
+            response_text = data["message"]["content"]
+            if response_text.startswith('"') and response_text.endswith('"') and response_text.count('"') == 2:
+                response_text = response_text.strip('"')
             #add the response text to the history before breaking it up
             self.add_history("assistant", sender, response_text)
 
@@ -186,7 +189,9 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             response = requests.post(self.api_url, json=data)
             response.raise_for_status()
             data = response.json()
-            response_text = data["message"]["content"].strip('"')
+            response_text = data["message"]["content"]
+            if response_text.startswith('"') and response_text.endswith('"') and response_text.count('"') == 2:
+                response_text = response_text.strip('"')
             lines = self.chop(response_text + f"  Type .help {self.nickname} to learn how to use me.")
             for line in lines:
                 c.privmsg(self.channel, line)
