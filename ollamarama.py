@@ -16,7 +16,7 @@ import requests
 class ollamarama(irc.bot.SingleServerIRCBot):
     def __init__(self, port=6667):
         #load config
-        self.config_file = "config_test.json"
+        self.config_file = "config.json"
         with open(self.config_file, 'r') as f:
             config = json.load(f)
             f.close()
