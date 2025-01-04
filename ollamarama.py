@@ -22,21 +22,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         
         self.channel, self.nickname, self.password, self.server, self.admins = config["irc"].values()
         irc.bot.SingleServerIRCBot.__init__(self, [(self.server, port)], self.nickname, self.nickname)
+        self.api_url, self.options, self.models, self.default_model, self.prompt, self.default_personality = config["ollama"].values()
 
-        self.models = config["ollama"]["models"]
-        self.default_model = self.models[config["ollama"]["default_model"]]
         self.model = self.default_model
-        self.default_personality = config["ollama"]["personality"]
         self.personality = self.default_personality
-        self.prompt = config["ollama"]["prompt"]
-
-        self.temperature, self.top_p, self.repeat_penalty = config["ollama"]["options"].values()
-        self.defaults = {
-            "temperature": self.temperature,
-            "top_p": self.top_p,
-            "repeat_penalty": self.repeat_penalty
-        }
-        self.api_url = config["ollama"]["api_base"] + "/api/chat"
 
         self.messages = {}
 
@@ -106,11 +95,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 "model": self.model, 
                 "messages": message, 
                 "stream": False,
-                "options": {
-                    "top_p": self.top_p,
-                    "temperature": self.temperature,
-                    "repeat_penalty": self.repeat_penalty
-                    }
+                "options": self.options
                 }
             response = requests.post(self.api_url, json=data)
             response.raise_for_status()
@@ -154,11 +139,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 ], 
                 "stream": False,
                 "timeout": 30,
-                "options": {
-                    "top_p": self.top_p,
-                    "temperature": self.temperature,
-                    "repeat_penalty": self.repeat_penalty
-                    }
+                "options": self.options
                 }
             response = requests.post(self.api_url, json=data)
             response.raise_for_status()
@@ -180,8 +161,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
     def on_join(self, c, e):
         user = e.source
-        user = user.split("!")
-        user = user[0]
+        user = user.split("!")[0]
 
     def ai(self, c, e, sender, message, x=False):
         if x and message[2]:

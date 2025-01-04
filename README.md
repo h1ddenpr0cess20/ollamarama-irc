@@ -21,7 +21,7 @@ You also need to install the irc module
 pip3 install irc
 ```
 
-Fill in the values for channel, nickname, password and server in config.json 
+Fill in the values for channel, nickname, password and server in config.json.  
 Password is optional, but registration is required for some channels.
 
 ## Use

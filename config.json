@@ -1,7 +1,7 @@
 {   
     "ollama":
     {
-        "api_base": "http://localhost:11434",
+        "api_url": "http://localhost:11434/api/chat",
         "options":
         {
             "temperature": 0.8,
