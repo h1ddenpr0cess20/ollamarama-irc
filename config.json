@@ -10,18 +10,11 @@
         },
         "models":
         {
-            "llama3": "llama3:8b-instruct-q5_K_M",
-            "wizardlm2": "wizardlm2:7b-q5_K_M",
-            "phi3": "phi3:14b-medium-4k-instruct-q5_K_M",
-            "zephyr": "zephyr:7b-beta-q5_K_M",
-            "solar": "solar:10.7b-instruct-v1-q5_K_M",
-            "mistral": "mistral:7b-instruct-v0.2-q5_K_M",
-            "dolphin-mistral": "dolphin-mistral:7b-v2.8-q5_K_M",
-            "dolphin-llama3": "dolphin-llama3:8b-v2.9-q5_K_M",
-            "llama3.1": "llama3.1:8b-instruct-q5_K_M"
+            "llama3.1": "llama3.1:8b-instruct-q5_K_M",
+            "llama3.2": "llama3.2:3b-instruct-fp16"
         
         },
-        "default_model": "llama3.1",
+        "default_model": "llama3.2:3b-instruct-fp16",
         "prompt": ["you are ", ". speak in the first person and never break character.  keep your responses brief and to the point."],
         "personality": "a minimalist AI assistant who provides longer responses when requested"
     },

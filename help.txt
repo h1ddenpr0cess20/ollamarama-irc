@@ -1,20 +1,11 @@
 I am an AI chatbot.  I can have any personality you want me to have.  Each user has their own chat history and personality setting.
 .ai <message> or botname: <message> to talk to me.
 .x <user> <message> to talk to another user's history for collaboration.
-.persona <personality> to change my personality. I can be any personality type, character, inanimate object, place, concept.
+.persona <personality> to change my personality. I can be any personality type, character, inanimate object, place, concept, etc.
 .custom <prompt> to use a custom system prompt instead of a persona
 .stock to set to stock settings.
 .reset to reset to default personality.
+Available at https://github.com/h1ddenpr0cess20/ollamarama-irc
 ~~~
 Admin commands
-.admins   List of users authorized to use these commands
-.models   List available models
-.model <model>   Change the model
-.temperature <#>   Set temperature value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)
-.top_p <#>   Set top_p value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)
-.repeat_penalty <#>   Set repeat_penalty between 0 and 2.  To reset to default, type reset instead of a number. (bot owner only)
-.clear   Reset bot for everyone (bot owner only)
-.gpersona <personality>   Change default global personality (bot owner only)
-.gpersona reset   Reset global personality (bot owner only)
-.auth <user>   Add an admin (bot owner only)
-.deauth <user>   Remove an admin (bot owner only)
+.model <model>   Change the model.  Omit model name to list models. 
