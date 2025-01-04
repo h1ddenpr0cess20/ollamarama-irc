@@ -3,7 +3,6 @@ Ollamarama is an AI chatbot for IRC which uses local LLMs with Ollama.  It can r
 
 Also available for the Matrix chat protocol at [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/).  Terminal-based version at [ollamarama](https://github.com/h1ddenpr0cess20/ollamarama)
 
-Based on my earlier project, InfiniGPT, which uses OpenAI, available at [infinigpt-irc](https://github.com/h1ddenpr0cess20/infinigpt-irc)
 
 ## Setup
 Install and familiarize yourself with [Ollama](https://ollama.ai/), make sure you can run local LLMs, etc.
@@ -32,15 +31,14 @@ python3 ollamarama.py
 ```
 
 **.ai _message_ or botname: _message_**
-    Basic usage.
-    Personality is preset by bot operator.
-    
+    Basic usage.  
+
 **.x _user message_**
-    This allows you to talk to another user's chat history.
+    This allows you to talk to another user's chat history.  
     _user_ is the display name of the user whose history you want to use
      
 **.persona _personality_**
-    Changes the personality.  It can be a character, personality type, object, idea.
+    Changes the personality.  It can be a character, personality type, object, idea.  
     Don't use a custom system prompt here.
 
 **.custom _prompt_**
@@ -52,38 +50,11 @@ python3 ollamarama.py
 **.stock**
     Remove personality and set to standard model settings
 
-**.help _botname_**
+**.help**
     Display the help menu
 
-**.models**
+**.model**
     Show current model and available models (admin only)
 
 **.model _name_**
     Set a model (admin only)
-
-**.model _reset_**
-    Reset to default model (admin only)
-
-**.temperature** 
-    Set temperature value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)
-                                                
-**.top_p**
-    Set top_p value between 0 and 1.  To reset to default, type reset instead of a number. (bot owner only)
-                                                
-**.repeat_penalty**
-    Set repeat_penalty between 0 and 2.  To reset to default, type reset instead of a number. (bot owner only)
-                                                
-**.clear**
-    Resets all bot history and sets default model and settings. (bot owner only)
-
-**.auth _user_**
-    Add user to admins (bot owner only)
-
-**.deauth _user_**
-    Remove user from admins (bot owner only)
-
-**.gpersona _persona_**
-    Change global personality (bot owner only)
-
-**.gpersona reset**
-    Reset global personality (bot owner only)
