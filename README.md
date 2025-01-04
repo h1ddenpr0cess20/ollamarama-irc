@@ -30,31 +30,30 @@ Password is optional, but registration is required for some channels.
 python3 ollamarama.py
 ```
 
-**.ai _message_ or botname: _message_**
-    Basic usage.  
+**.ai _message_ or botname: _message_**  
+Basic usage.  
 
-**.x _user message_**
-    This allows you to talk to another user's chat history.  
-    _user_ is the display name of the user whose history you want to use
+**.x _user message_**  
+This allows you to talk to another user's chat history.  
+_user_ is the display name of the user whose history you want to use
      
-**.persona _personality_**
-    Changes the personality.  It can be a character, personality type, object, idea.  
-    Don't use a custom system prompt here.
+**.persona _personality_**  
+Changes the personality.  It can be a character, personality type, object, idea.  Don't use a custom system prompt here.
 
-**.custom _prompt_**
+**.custom _prompt_**  
     Set a custom system prompt istead of the roleplay prompt
         
-**.reset**
+**.reset**  
     Reset to preset personality
     
-**.stock**
+**.stock**  
     Remove personality and set to standard model settings
 
-**.help**
+**.help**  
     Display the help menu
 
-**.model**
+**.model**  
     Show current model and available models (admin only)
 
-**.model _name_**
+**.model _name_**  
     Set a model (admin only)
