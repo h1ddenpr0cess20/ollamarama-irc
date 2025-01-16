@@ -1,4 +1,7 @@
 # ollamarama-irc
+
+### **Deprecated**: I recommend using [infinigpt-irc](https://github.com/h1ddenpr0cess20/infinigpt-irc).  It is now asynchronous and multi-channel, compatible with OpenAI, Google, xAI, and Ollama.  You can omit the models and API keys for the non-Ollama services, which eliminates the need for maintaining this separate project.  
+
 Ollamarama is an AI chatbot for IRC which uses local LLMs with Ollama.  It can roleplay as almost anything you can think of.  You can set any default personality you would like.  It can be changed at any time, and each user has their own separate chat history with their chosen personality setting.  Users can interact with each others chat histories for collaboration if they would like, but otherwise, conversations are separated.
 
 Also available for the Matrix chat protocol at [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/).  Terminal-based version at [ollamarama](https://github.com/h1ddenpr0cess20/ollamarama)
