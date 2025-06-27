@@ -6,17 +6,17 @@
         {
             "temperature": 0.8,
             "top_p": 0.7,
-            "repeat_penalty": 1.2
+            "repeat_penalty": 1.0
         },
         "models":
         {
-            "llama3.1": "llama3.1:8b-instruct-q5_K_M",
-            "llama3.2": "llama3.2:3b-instruct-fp16"
-        
+            "llama3.2": "llama3.2",
+            "qwen3": "qwen3"
+               
         },
-        "default_model": "llama3.2:3b-instruct-fp16",
-        "prompt": ["you are ", ". speak in the first person and never break character.  keep your responses brief and to the point."],
-        "personality": "a minimalist AI assistant who provides longer responses when requested"
+        "default_model": "qwen3",
+        "prompt": ["You are ", ". Speak in the first person and never break character.  Keep your responses brief and to the point."],
+        "personality": "a helpful assistant named Ollamarama, who runs on Ollama"
     },
     "irc":
     {

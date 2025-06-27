@@ -8,9 +8,11 @@ ollamarama-irc
 import irc.bot
 import time
 import textwrap
-import threading
 import json
 import requests
+import asyncio
+import httpx
+import logging
 
 class ollamarama(irc.bot.SingleServerIRCBot):
     """
@@ -54,6 +56,10 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         self.personality = self.default_personality
 
         self.messages = {}
+        self.loop = None
+        
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        self.log = logging.getLogger(__name__).info
 
     def chop(self, message):
         """
@@ -81,7 +87,28 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 newlines.append(line) 
         return newlines  
     
-    def reset(self, c, sender, stock=False):
+    async def thinking(self, lines):
+        """
+        Handles separation of thinking process from responses of reasoning models like DeepSeek-R1.
+
+        Args:
+        lines (list): A list of lines of an LLM response.
+
+        """
+        try:
+            thinking = ' '.join(lines[lines.index('<think>'):lines.index('</think>')+1])
+        except:
+            thinking = None
+
+        if thinking != None:
+            self.log(f"Thinking: {thinking}")
+            lines = lines[lines.index('</think>')+2:]
+
+        joined_lines = ' '.join(lines)
+
+        return lines, joined_lines
+    
+    async def reset(self, c, sender, stock=False):
         """
         Reset the chat history for a user and optionally apply default settings.
 
@@ -95,12 +122,14 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         else:
             self.messages[sender] = []
         if not stock:
-            self.set_prompt(c, sender, persona=self.default_personality, respond=False)
+            await self.set_prompt(c, sender, persona=self.default_personality, respond=False)
             c.privmsg(self.channel, f"{self.nickname} reset to default for {sender}")
+            self.log(f"{self.nickname} reset to default for {sender}")
         else:
             c.privmsg(self.channel, f"Stock settings applied for {sender}")
+            self.log(f"Stock settings applied for {sender}")
 
-    def set_prompt(self, c, sender, persona=None, custom=None, respond=True):
+    async def set_prompt(self, c, sender, persona=None, custom=None, respond=True):
         """
         Set a custom or personality-based prompt for a user.
 
@@ -115,15 +144,15 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             self.messages[sender].clear()
         if persona != None and persona != "":
             prompt = self.prompt[0] + persona + self.prompt[1]
+            self.log(f"System prompt for {sender} set to persona: '{persona}'")
         if custom != None  and custom != "":
             prompt = custom
+            self.log(f"System prompt for {sender} set to custom: '{custom}'")
         self.add_history("system", sender, prompt)
         if respond:
             self.add_history("user", sender, "introduce yourself")
-            thread = threading.Thread(target=self.respond, args=(c, sender, self.messages[sender]))
-            thread.start()
-            thread.join(timeout=30)
-            time.sleep(2)
+            await self.respond(c, sender, self.messages[sender])
+            await asyncio.sleep(2)
 
     def add_history(self, role, sender, message):
         """
@@ -149,7 +178,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             else:
                 del self.messages[sender][0:2]
 
-    def respond(self, c, sender, message, sender2=None):
+    async def respond(self, c, sender, message, sender2=None):
         """
         Generate and send a response to a user.
 
@@ -166,27 +195,35 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 "stream": False,
                 "options": self.options
                 }
-            response = requests.post(self.api_url, json=data)
-            response.raise_for_status()
-            data = response.json()
+            
+            async with httpx.AsyncClient(timeout=httpx.Timeout(120.0)) as client:
+                response = await client.post(self.api_url, json=data)
+                response.raise_for_status()
+                data = response.json()
             
             response_text = data["message"]["content"]
             if response_text.startswith('"') and response_text.endswith('"') and response_text.count('"') == 2:
                 response_text = response_text.strip('"')
-            self.add_history("assistant", sender, response_text)
+            
+            lines = self.chop(response_text.strip())
+            lines, joined_lines = await self.thinking(lines)
+            
+            self.add_history("assistant", sender, joined_lines)
 
             if sender2:
+                self.log(f"Sending response to {sender2} in {self.channel}: '{joined_lines}'")
                 c.privmsg(self.channel, sender2 + ":")
             else:
+                self.log(f"Sending response to {sender} in {self.channel}: '{joined_lines}'")
                 c.privmsg(self.channel, sender + ":")
-            time.sleep(1)
+            await asyncio.sleep(1)
 
-            lines = self.chop(response_text.strip())
             for line in lines:
                 c.privmsg(self.channel, line)
-                time.sleep(2)
+                await asyncio.sleep(2)
         except Exception as e:
             c.privmsg(self.channel, "Something went wrong, try again.")
+            self.log(f"Error in respond: {e}")
             print(e)   
 
     def on_welcome(self, c, e):
@@ -197,10 +234,14 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             c: IRC connection object.
             e: Event object.
         """
+        self.log(f"Connected to {self.server}")
+        
         if self.password != None:
             c.privmsg("NickServ", f"IDENTIFY {self.password}")
+            self.log("Identifying to NickServ")
             time.sleep(5)
         
+        self.log(f"Joining channel: {self.channel}")
         c.join(self.channel)
 
         greet = "introduce yourself"
@@ -226,12 +267,16 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 response_text = response_text.strip('"')
                 
             lines = self.chop(response_text + f"  Type .help to learn how to use me.")
+            lines, joined_lines = asyncio.run_coroutine_threadsafe(self.thinking(lines), self.loop).result()
+            
+            self.log(f"Sending welcome response to {self.channel}: '{joined_lines}'")
             for line in lines:
                 c.privmsg(self.channel, line)
                 time.sleep(2)
-        except:
+        except Exception as e:
+            self.log(f"Error sending welcome message: {e}")
             pass
-            
+
     def on_nicknameinuse(self, c, e):
         """
         Handle the nickname-in-use event by appending an underscore to the nickname.
@@ -253,7 +298,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         user = e.source
         user = user.split("!")[0]
 
-    def ai(self, c, e, sender, message, x=False):
+    async def ai(self, c, e, sender, message, x=False):
         """
         Process AI-related commands for generating responses.
 
@@ -269,20 +314,16 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             message = ' '.join(message[2:])
             if name in self.messages:
                 self.add_history("user", name, message)
-                thread = threading.Thread(target=self.respond, args=(c, name, self.messages[name],), kwargs={'sender2': sender})
-                thread.start()
-                thread.join(timeout=30)
+                await self.respond(c, name, self.messages[name], sender2=sender)
             else:
                 pass
         else:
             message = ' '.join(message[1:])
             self.add_history("user", sender, message)
-            thread = threading.Thread(target=self.respond, args=(c, sender, self.messages[sender]))
-            thread.start()
-            thread.join(timeout=30)      
-        time.sleep(2)       
+            await self.respond(c, sender, self.messages[sender])
+        await asyncio.sleep(2)       
 
-    def help_menu(self, c, sender):
+    async def help_menu(self, c, sender):
         """
         Display the help menu by sending lines to the user.
 
@@ -294,7 +335,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             self.help = f.readlines()
         for line in self.help:
             c.notice(sender, line.strip())
-            time.sleep(1)
+            await asyncio.sleep(1)
     
     def change_model(self, c, channel=False, model=False):
         """
@@ -309,8 +350,13 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             try:
                 if model in self.models:
                     self.model = self.models[model]
+                    self.log(f"Model set to {self.model}")
                     c.privmsg(self.channel, f"Model set to {self.model}")
-            except:
+                else:
+                    self.log(f"Model {model} not found in available models")
+                    c.privmsg(self.channel, f"Model {model} not found in available models.")
+            except Exception as e:
+                self.log(f"Error changing model: {e}")
                 pass
         else:
             if channel:
@@ -318,7 +364,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 for line in current_model:
                     c.privmsg(self.channel, line)
     
-    def handle_message(self, c, e, sender, message):
+    async def handle_message(self, c, e, sender, message):
         """
         Handle user and admin commands by executing the corresponding actions.
 
@@ -344,9 +390,11 @@ class ollamarama(irc.bot.SingleServerIRCBot):
 
         command = message[0]
         if command in user_commands:
+            self.log(f"Received message from {sender} in {self.channel}: '{' '.join(message)}'")
             action = user_commands[command]
-            action()
+            await action()
         if sender in self.admins and command in admin_commands:
+            self.log(f"Received admin message from {sender} in {self.channel}: '{' '.join(message)}'")
             action = admin_commands[command]
             action()
 
@@ -364,10 +412,15 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         sender = e.source.split("!")[0]
 
         if sender != self.nickname:
-            self.handle_message(c, e, sender, message)
+            asyncio.run_coroutine_threadsafe(self.handle_message(c, e, sender, message), self.loop)
             
+    async def main(self):
+        """
+        Initializes and runs the ollamarama bot.
+        """
+        self.loop = asyncio.get_running_loop()
+        await asyncio.to_thread(self.start)
 
 if __name__ == "__main__":
     bot = ollamarama()
-
-    bot.start()
+    asyncio.run(bot.main())
