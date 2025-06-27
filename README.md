@@ -1,62 +1,93 @@
 # ollamarama-irc
 
-### **Deprecated**: I recommend using [infinigpt-irc](https://github.com/h1ddenpr0cess20/infinigpt-irc).  It is now asynchronous and multi-channel, compatible with OpenAI, Google, xAI, and Ollama.  You can omit the models and API keys for the non-Ollama services, which eliminates the need for maintaining this separate project.  
+[![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](LICENSE)
+[![Ollama](https://img.shields.io/badge/Powered%20by-Ollama-orange.svg)](https://ollama.com/)
+[![IRC](https://img.shields.io/badge/Protocol-IRC-purple.svg)](https://en.wikipedia.org/wiki/Internet_Relay_Chat)
 
-Ollamarama is an AI chatbot for IRC which uses local LLMs with Ollama.  It can roleplay as almost anything you can think of.  You can set any default personality you would like.  It can be changed at any time, and each user has their own separate chat history with their chosen personality setting.  Users can interact with each others chat histories for collaboration if they would like, but otherwise, conversations are separated.
+Ollamarama is an AI chatbot for IRC that uses local LLMs with Ollama. It can roleplay as almost anything you can think of with customizable personalities, individual user chat histories, and collaborative features.
 
-Also available for the Matrix chat protocol at [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/).  Terminal-based version at [ollamarama](https://github.com/h1ddenpr0cess20/ollamarama)
+## ✨ Features
+
+- 🎭 **Roleplay as any character or personality** - Set any default personality that can be changed at any time
+- 👥 **Individual chat histories** - Each user maintains their own separate conversation with their chosen personality
+- 🤝 **Collaborative mode** - Users can interact with each other's chat histories for collaboration
+- 🔄 **Real-time personality switching** - Change personalities on the fly during conversations
+
+## 🌐 Other Versions
+
+- **Matrix**: [ollamarama-matrix](https://github.com/h1ddenpr0cess20/ollamarama-matrix/)
+- **Terminal**: [ollamarama](https://github.com/h1ddenpr0cess20/ollamarama)
 
 
-## Setup
-Install and familiarize yourself with [Ollama](https://ollama.ai/), make sure you can run local LLMs, etc.
+## 🚀 Setup
 
-You can install it with this command:
+### Prerequisites
+Install and familiarize yourself with [Ollama](https://ollama.com/). Make sure you can run local LLMs successfully.
+
+**Linux installation:**
+```bash
+curl https://ollama.com/install.sh | sh
 ```
-curl https://ollama.ai/install.sh | sh
+
+**Windows installation:**  
+Download the app from the [Ollama website](https://ollama.com/).
+
+### Model Setup
+1. Browse and [download models](https://ollama.com/library) that work best for your use case
+2. Add your chosen models to the `config.json` file
+3. Install models using: `ollama pull modelname`
+
+### Configuration
+Fill in the required values in `config.json`:
+- `channel` - IRC channel to join
+- `nickname` - Bot's IRC nickname  
+- `server` - IRC server address
+- `password` - IRC password (optional, but required for some channels)
+
+### Environment Setup
+Create a virtual environment and install dependencies:
+
+**Linux/macOS:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Once it's all set up, you'll need to [download the models](https://ollama.ai/library) you want to use.  You can play with the available ones and see what works best for you.  Add those to the config.json file.  If you want to use the ones I've included, just run ollama pull _modelname_ for each.
-
-
-You also need to install the irc module
-
-```
-pip3 install irc
+**Windows:**
+```cmd
+python3 -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-Fill in the values for channel, nickname, password and server in config.json.  
-Password is optional, but registration is required for some channels.
+## 💬 Usage
 
-## Use
-
-```
+### Starting the Bot
+```bash
 python3 ollamarama.py
 ```
 
-**.ai _message_ or botname: _message_**  
-Basic usage.  
+### Commands
 
-**.x _user message_**  
-This allows you to talk to another user's chat history.  
-_user_ is the display name of the user whose history you want to use
-     
-**.persona _personality_**  
-Changes the personality.  It can be a character, personality type, object, idea.  Don't use a custom system prompt here.
+| Command | Description |
+|---------|-------------|
+| `.ai message` or `botname: message` | Basic chat with the AI |
+| `.x user message` | Talk to another user's chat history |
+| `.persona personality` | Change personality (character, type, object, idea) |
+| `.custom prompt` | Set a custom system prompt instead of roleplay |
+| `.reset` | Reset to preset personality |
+| `.stock` | Remove personality and use standard model settings |
+| `.help` | Display the help menu |
+| `.model` | Show current model and available models *(admin only)* |
+| `.model name` | Set a specific model *(admin only)* |
 
-**.custom _prompt_**  
-    Set a custom system prompt istead of the roleplay prompt
-        
-**.reset**  
-    Reset to preset personality
-    
-**.stock**  
-    Remove personality and set to standard model settings
-
-**.help**  
-    Display the help menu
-
-**.model**  
-    Show current model and available models (admin only)
-
-**.model _name_**  
-    Set a model (admin only)
+### Examples
+```
+.ai Hello, how are you today?
+botname: What's the weather like?
+.persona Sherlock Holmes
+.x alice What do you think about this mystery?
+.custom You are a helpful programming assistant
+```
