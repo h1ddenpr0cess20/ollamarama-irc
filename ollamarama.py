@@ -9,7 +9,6 @@ import irc.bot
 import time
 import textwrap
 import json
-import requests
 import asyncio
 import httpx
 import logging
@@ -258,7 +257,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
                 "timeout": 30,
                 "options": self.options
                 }
-            response = requests.post(self.api_url, json=data)
+            response = httpx.post(self.api_url, json=data, timeout=30.0)
             response.raise_for_status()
             data = response.json()
 
@@ -337,7 +336,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
             c.notice(sender, line.strip())
             await asyncio.sleep(1)
     
-    def change_model(self, c, channel=False, model=False):
+    async def change_model(self, c, channel=False, model=False):
         """
         Change the chatbot model or list available models.
 
@@ -396,7 +395,7 @@ class ollamarama(irc.bot.SingleServerIRCBot):
         if sender in self.admins and command in admin_commands:
             self.log(f"Received admin message from {sender} in {self.channel}: '{' '.join(message)}'")
             action = admin_commands[command]
-            action()
+            await action()
 
     def on_pubmsg(self, c, e):
         """
