@@ -1,6 +1,5 @@
 # ollamarama-irc
 
-[![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-AGPL--3.0-green.svg)](LICENSE)
 [![Ollama](https://img.shields.io/badge/Powered%20by-Ollama-orange.svg)](https://ollama.com/)
 [![IRC](https://img.shields.io/badge/Protocol-IRC-purple.svg)](https://en.wikipedia.org/wiki/Internet_Relay_Chat)
