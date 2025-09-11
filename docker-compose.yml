@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  bot:
+    build: .
+    image: ollamarama-irc:latest
+    restart: unless-stopped
+    volumes:
+      - ./config.json:/app/config.json:ro
+    environment:
+      - OLLAMARAMA_OLLAMA_URL=http://host.docker.internal:11434/api/chat
+    # network_mode: host  # use host if Ollama is on the host

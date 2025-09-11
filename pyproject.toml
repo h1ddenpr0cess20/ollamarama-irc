@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ollamarama-irc"
+version = "1.0.0"
+description = "IRC chatbot powered by Ollama"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Dustin Whyte" }]
+license = { file = "LICENSE" }
+dependencies = [
+  "irc",
+  "requests",
+  "rich",
+  "fastmcp"
+
+]
+
+[project.scripts]
+ollamarama-irc = "ollamarama_irc.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["ollamarama_irc*"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+python_files = ["test_*.py"]
+testpaths = ["tests"]

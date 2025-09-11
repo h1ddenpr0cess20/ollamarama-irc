@@ -32,17 +32,33 @@ curl https://ollama.com/install.sh | sh
 **Windows installation:**  
 Download the app from the [Ollama website](https://ollama.com/).
 
+Or install the bot as a package (optional):
+```bash
+pip install .
+```
+
 ### Model Setup
 1. Browse and [download models](https://ollama.com/library) that work best for your use case
 2. Add your chosen models to the `config.json` file
 3. Install models using: `ollama pull modelname`
 
 ### Configuration
-Fill in the required values in `config.json`:
-- `channel` - IRC channel to join
-- `nickname` - Bot's IRC nickname  
-- `server` - IRC server address
-- `password` - IRC password (optional, but required for some channels)
+Edit `config.json` with nested keys (see `docs/configuration.md`):
+
+IRC:
+- `irc.server`: IRC server (e.g., `irc.libera.chat`)
+- `irc.nickname`: bot nickname
+- `irc.password`: NickServ password (optional)
+- `irc.channels`: list of channels (or legacy `irc.channel`)
+- `irc.admins`: list of admin nicknames (for admin commands)
+
+Ollama:
+- `ollama.api_url`: e.g., `http://localhost:11434/api/chat`
+- `ollama.models`: mapping of names to model IDs
+- `ollama.default_model`: selected model (name or ID)
+- `ollama.options`: generation options (temperature, top_p, etc.)
+- `ollama.timeout`: request timeout seconds
+- `ollama.mcp_servers`: optional MCP servers
 
 ### Environment Setup
 Create a virtual environment and install dependencies:
@@ -65,7 +81,17 @@ pip install -r requirements.txt
 
 ### Starting the Bot
 ```bash
-python3 ollamarama.py
+python -m ollamarama_irc -c config.json
+```
+
+Installed script (after `pip install .`):
+```bash
+ollamarama-irc -c config.json
+```
+
+In Docker or CI, prefer plain logs:
+```bash
+ollamarama-irc -c config.json --log-format plain
 ```
 
 ### Commands
@@ -80,7 +106,47 @@ python3 ollamarama.py
 | `.stock` | Remove personality and use standard model settings |
 | `.help` | Display the help menu |
 | `.model` | Show current model and available models *(admin only)* |
-| `.model name` | Set a specific model *(admin only)* |
+| `.model name|reset` | Set or reset model *(admin only)* |
+| `.clear` | Clear all histories and reset bot *(admin only)* |
+| `.verbose [on|off|toggle]` | Control verbosity of prompts *(admin only)* |
+
+## 📚 Documentation
+
+- Full docs index: [docs/index.md](./docs/index.md)
+- Ollama setup: [docs/ollama.md](./docs/ollama.md)
+- Quickstart: [docs/getting-started.md](./docs/getting-started.md)
+- Configuration: [docs/configuration.md](./docs/configuration.md)
+- Commands: [docs/commands.md](./docs/commands.md)
+- CLI: [docs/cli.md](./docs/cli.md)
+- Architecture: [docs/architecture.md](./docs/architecture.md)
+- Tools & MCP: [docs/tools-and-mcp.md](./docs/tools-and-mcp.md)
+- Operations: [docs/operations.md](./docs/operations.md)
+- Development: [docs/development.md](./docs/development.md)
+- Migration: [docs/migration.md](./docs/migration.md)
+- Legacy map: [docs/legacy-map.md](./docs/legacy-map.md)
+- Refactor plan: [docs/refactor-plan.md](./docs/refactor-plan.md)
+- Security: [docs/security.md](./docs/security.md)
+- AI output disclaimer: [docs/ai-output-disclaimer.md](./docs/ai-output-disclaimer.md)
+- Not a companion: [docs/not-a-companion.md](./docs/not-a-companion.md)
+
+## Docker
+
+Build and run:
+```bash
+docker build -t ollamarama-irc .
+docker run --rm -v $PWD/config.json:/app/config.json:ro ollamarama-irc
+```
+
+Compose:
+```yaml
+services:
+  bot:
+    build: .
+    volumes:
+      - ./config.json:/app/config.json:ro
+    environment:
+      - OLLAMARAMA_OLLAMA_URL=http://host.docker.internal:11434/api/chat
+```
 
 ### Examples
 ```
