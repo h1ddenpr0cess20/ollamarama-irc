@@ -10,24 +10,24 @@
         },
         "models":
         {
-            "llama3.2": "llama3.2",
+            "gpt-oss": "gpt-oss:20b",
             "qwen3": "qwen3"
                
         },
         "default_model": "qwen3",
-        "prompt": ["You are ", ". Speak in the first person and never break character.  Keep your responses brief and to the point."],
-        "personality": "a helpful assistant named Ollamarama, who runs on Ollama"
-    },
-    "irc":
-    {
+        "prompt": ["Assume the personality of ", ". Speak in the first person and never break character.  Keep your responses brief and to the point.  Respond only in plain text, without markdown or other formatting."],
+        "personality": "a helpful assistant named Ollamarama, who runs on Ollama",
+        "mcp_servers": {
         
-        "channel": "#ollamarama",
+        }
+    },
+    "irc": {
+        "server": "irc.SERVER.TLD",
         "nickname": "ollamarama",
         "password": null,
-        "server": "irc.SERVER.TLD",
-        "admins":
-        [
-            "admin_name"
+        "channels": ["#channel"],
+        "admins": [
+            "admin_nick"
         ]
     }
 }

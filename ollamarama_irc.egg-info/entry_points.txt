@@ -1,0 +1,2 @@
+[console_scripts]
+ollamarama-irc = ollamarama_irc.cli:main

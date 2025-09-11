@@ -1,2 +1,5 @@
 irc
-httpx
+requests
+fastmcp
+rich
+pytest
