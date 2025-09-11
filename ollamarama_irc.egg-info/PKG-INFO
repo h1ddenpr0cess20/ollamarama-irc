@@ -812,7 +812,6 @@ ollamarama-irc -c config.json --log-format plain
 - Security: [docs/security.md](./docs/security.md)
 - AI output disclaimer: [docs/ai-output-disclaimer.md](./docs/ai-output-disclaimer.md)
 - Not a companion: [docs/not-a-companion.md](./docs/not-a-companion.md)
-- Verification & safety: [docs/verification.md](./docs/verification.md)
 
 ## Docker
 

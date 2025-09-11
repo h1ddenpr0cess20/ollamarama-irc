@@ -30,7 +30,6 @@ Ollamarama is an IRC chatbot powered by local LLMs via the Ollama Chat API. It b
 - [Refactor Blueprint (historic)](refactor-plan.md)
 - [Legacy → New Map](legacy-map.md)
 - [AI Output Disclaimer](ai-output-disclaimer.md)
-- [Verification & Safety](verification.md)
 
 ## Overview
 
